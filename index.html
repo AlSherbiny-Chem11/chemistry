@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>أكاديمية الشربيني للكيمياء | المنصة الرسمية</title>
+    <title>أكاديمية الشربيني للكيمياء | الإصدار الاحترافي v6.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,136 +12,139 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
-        :root { --gold: #d4af37; --dark: #0f172a; }
-        body { font-family: 'Cairo', sans-serif; background: #f8fafc; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap');
         
-        /* خلفية ذرات كيمياء متطورة */
-        .chem-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.05; background-image: radial-gradient(var(--gold) 1px, transparent 1px); background-size: 30px 30px; }
+        :root {
+            --royal-gold: #c5a059;
+            --deep-blue: #0f172a;
+            --soft-gold: rgba(197, 160, 89, 0.2);
+        }
 
-        .gold-gradient { background: linear-gradient(90deg, #bf953f, #d4af37, #bf953f); }
-        
-        /* شريط الأخبار */
-        .ticker-container { background: linear-gradient(90deg, #0f172a, #1e293b); color: #d4af37; padding: 10px 0; font-weight: bold; overflow: hidden; border-bottom: 2px solid var(--gold); }
-        .ticker-text { display: inline-block; white-space: nowrap; animation: ticker 20s linear infinite; }
-        @keyframes ticker { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-        /* كروت المراحل الدراسية */
-        .grade-card { background: white; border-radius: 30px; border: 2px solid #f1f5f9; transition: 0.4s; cursor: pointer; position: relative; overflow: hidden; }
-        .grade-card:hover { border-color: var(--gold); transform: translateY(-10px); box-shadow: 0 15px 30px rgba(212,175,55,0.15); }
+        /* تأثير الجزيئات الكيميائية في الخلفية */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        /* تأثير الزجاج (Glassmorphism) */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+        }
+
+        /* أنيميشن الظهور */
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* زر الدخول الملكي */
+        .btn-gold {
+            background: linear-gradient(135deg, #c5a059 0%, #edd3a1 100%);
+            color: #0f172a;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2);
+        }
+        .btn-gold:active { transform: scale(0.96); }
+
+        /* تخصيص السكرول بار */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: var(--royal-gold); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="chem-bg"></div>
+    <div class="bg-pattern"></div>
 
-    <div class="ticker-container">
-        <div class="ticker-text">
-             🌟 مرحباً بكم في صرح الكيمياء .. الأستاذ محمد الشربيني يتمنى لكم عاماً دراسياً مليئاً بالتفوق .. انتظروا مفاجآت ليالي الامتحان قريباً .. 🌟
-        </div>
-    </div>
-
-    <div id="auth-screen" class="fixed inset-0 bg-[#0f172a] z-[9999] flex items-center justify-center">
-        <div class="bg-white p-10 rounded-[45px] text-center w-full max-w-sm shadow-[0_0_60px_rgba(212,175,55,0.2)]">
-            <div class="w-24 h-24 gold-gradient rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl rotate-3">
-                <i class="fas fa-atom text-white text-5xl"></i>
+    <section id="auth-screen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0f172a]">
+        <div class="text-center p-8 w-full max-w-sm fade-in">
+            <div class="w-24 h-24 bg-[#c5a059] rounded-[32px] mx-auto mb-6 flex items-center justify-center shadow-[0_0_40px_rgba(197,160,89,0.4)] rotate-3">
+                <i class="fas fa-atom text-slate-900 text-5xl"></i>
             </div>
-            <h1 class="text-3xl font-black mb-2 text-slate-800">دخول المنصة</h1>
-            <p class="text-slate-400 font-bold mb-10">منصة الأستاذ محمد الشربيني</p>
-            <button onclick="login()" class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black flex items-center justify-center gap-4 hover:shadow-xl transition-all active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="22"> تسجيل دخول الطلاب
+            <h1 class="text-3xl font-black mb-2 tracking-tight">أكاديمية الشربيني</h1>
+            <p class="text-slate-400 mb-10 font-medium">نظام الكيمياء الذكي 2026</p>
+            <button onclick="login()" class="btn-gold w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-lg">
+                <i class="fab fa-google"></i> تسجيل دخول الطلاب
             </button>
         </div>
-    </div>
+    </section>
 
-    <header id="app-header" class="sticky top-0 bg-white/90 backdrop-blur-md border-bottom-2 border-gold py-4 px-6 z-[1000] hidden border-b-2 border-[#d4af37]">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="relative group">
-                    <img id="user-avatar" onclick="toggleMenu()" class="w-12 h-12 rounded-2xl border-2 border-gold cursor-pointer object-cover shadow-md">
-                    <div id="user-menu" class="hidden absolute top-16 right-0 w-60 bg-white rounded-3xl shadow-2xl border p-2 animate-show">
-                        <div class="p-4 border-b border-slate-50">
-                            <p class="text-[10px] font-bold text-slate-400">أهلاً بك يا بطل</p>
-                            <p id="display-name" class="font-black text-slate-800 text-sm"></p>
-                        </div>
-                        <button onclick="showGrades()" class="w-full text-right p-4 hover:bg-slate-50 font-bold text-blue-600 text-sm rounded-2xl"><i class="fas fa-sync-alt ml-2"></i> تغيير الصف الدراسي</button>
-                        <button onclick="checkAdmin()" class="w-full text-right p-4 hover:bg-red-50 font-bold text-red-600 text-sm rounded-2xl"><i class="fas fa-user-shield ml-2"></i> لوحة المدرس (خاص فقط)</button>
-                        <button onclick="logout()" class="w-full text-right p-4 hover:bg-slate-50 font-bold text-slate-400 text-sm rounded-2xl"><i class="fas fa-sign-out-alt ml-2"></i> تسجيل الخروج</button>
+    <header id="app-header" class="hidden sticky top-0 z-[1000] border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-xl">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="relative group">
+                <img id="user-avatar" onclick="toggleMenu()" class="w-11 h-11 rounded-xl border-2 border-[#c5a059] cursor-pointer hover:rotate-3 transition">
+                <div id="drop-menu" class="hidden absolute top-14 right-0 w-60 glass p-2 shadow-2xl animate-show">
+                    <div class="p-4 border-b border-white/5 mb-2">
+                        <p class="text-[10px] text-slate-400 font-bold">طالب مسجل</p>
+                        <p id="user-name-display" class="font-bold text-sm truncate"></p>
                     </div>
+                    <button onclick="openPicker()" class="w-full text-right p-3 hover:bg-white/5 rounded-xl text-sm font-bold"><i class="fas fa-layer-group ml-2 text-[#c5a059]"></i> تبديل الصف</button>
+                    <button onclick="adminCheck()" class="w-full text-right p-3 hover:bg-red-500/10 rounded-xl text-sm font-bold text-red-400"><i class="fas fa-user-crown ml-2"></i> لوحة المدرس</button>
+                    <button onclick="logout()" class="w-full text-right p-3 hover:bg-white/5 rounded-xl text-sm font-bold text-slate-500"><i class="fas fa-sign-out-alt ml-2"></i> خروج</button>
                 </div>
             </div>
             <div class="text-center">
-                <h1 class="font-black text-xl text-slate-800">أكاديمية الشربيني</h1>
-                <p id="current-grade-text" class="text-[10px] font-bold text-gold uppercase tracking-tighter">جاري التحميل...</p>
+                <span id="grade-info" class="bg-[#c5a059]/10 text-[#c5a059] px-4 py-1 rounded-lg text-[10px] font-black border border-[#c5a059]/30">تحميل...</span>
             </div>
+            <h2 class="font-black text-xl tracking-tighter">الشربيني <span class="text-[#c5a059]">Academy</span></h2>
         </div>
     </header>
 
-    <div id="grade-picker" class="fixed inset-0 bg-slate-900/98 z-[8000] hidden flex flex-col items-center justify-center p-6 overflow-y-auto">
-        <h2 class="text-white text-3xl font-black mb-4">مرحباً بك في رحلة التفوق</h2>
-        <p class="text-slate-400 font-bold mb-12">اختر صفك الدراسي لفتح المحتوى التعليمي</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
-            <div onclick="setGrade('1-mid', 'الأول الإعدادي')" class="grade-card p-8 text-center bg-white">
-                <i class="fas fa-vial text-3xl text-blue-500 mb-4"></i>
-                <h3 class="font-black">الأول الإعدادي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
+    <div id="grade-picker" class="fixed inset-0 z-[8000] bg-[#0f172a] hidden flex flex-col items-center justify-center p-6">
+        <h3 class="text-2xl font-black mb-12 text-white">اختر سنتك الدراسية 🎓</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-5 w-full max-w-4xl">
+            <div onclick="saveGrade('1-mid', 'الأول الإعدادي')" class="glass p-6 text-center cursor-pointer hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-white/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-book-open text-blue-400"></i></div>
+                <p class="font-bold">أولى إعدادي</p>
             </div>
-            <div onclick="setGrade('2-mid', 'الثاني الإعدادي')" class="grade-card p-8 text-center bg-white">
-                <i class="fas fa-flask text-3xl text-blue-500 mb-4"></i>
-                <h3 class="font-black">الثاني الإعدادي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
+            <div onclick="saveGrade('2-mid', 'الثاني الإعدادي')" class="glass p-6 text-center cursor-pointer hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-white/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-flask text-blue-400"></i></div>
+                <p class="font-bold">تانية إعدادي</p>
             </div>
-            <div onclick="setGrade('3-mid', 'الثالث الإعدادي')" class="grade-card p-8 text-center bg-white">
-                <i class="fas fa-microscope text-3xl text-blue-500 mb-4"></i>
-                <h3 class="font-black">الثالث الإعدادي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
+            <div onclick="saveGrade('3-mid', 'الثالث الإعدادي')" class="glass p-6 text-center cursor-pointer hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-white/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-microscope text-blue-400"></i></div>
+                <p class="font-bold">تالتة إعدادي</p>
             </div>
-            <div onclick="setGrade('1-sec', 'الأول الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
-                <i class="fas fa-atom text-3xl text-amber-500 mb-4"></i>
-                <h3 class="font-black text-amber-900">الأول الثانوي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
+            <div onclick="saveGrade('1-sec', 'الأول الثانوي')" class="glass p-6 text-center cursor-pointer border-[#c5a059]/30 hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-[#c5a059]/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-atom text-amber-500"></i></div>
+                <p class="font-bold text-[#c5a059]">أولى ثانوي</p>
             </div>
-            <div onclick="setGrade('2-sec', 'الثاني الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
-                <i class="fas fa-dna text-3xl text-amber-500 mb-4"></i>
-                <h3 class="font-black text-amber-900">الثاني الثانوي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
+            <div onclick="saveGrade('2-sec', 'الثاني الثانوي')" class="glass p-6 text-center cursor-pointer border-[#c5a059]/30 hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-[#c5a059]/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-dna text-amber-500"></i></div>
+                <p class="font-bold text-[#c5a059]">تانية ثانوي</p>
             </div>
-            <div onclick="setGrade('3-sec', 'الثالث الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
-                <i class="fas fa-brain text-3xl text-amber-500 mb-4"></i>
-                <h3 class="font-black text-amber-900">الثالث الثانوي</h3>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
+            <div onclick="saveGrade('3-sec', 'الثالث الثانوي')" class="glass p-6 text-center cursor-pointer border-[#c5a059]/30 hover:border-[#c5a059] transition group">
+                <div class="w-12 h-12 bg-[#c5a059]/5 rounded-full mx-auto mb-3 flex items-center justify-center group-hover:bg-[#c5a059]/20"><i class="fas fa-brain text-amber-500"></i></div>
+                <p class="font-bold text-[#c5a059]">تالتة ثانوي</p>
             </div>
         </div>
     </div>
 
-    <main id="app-content" class="container mx-auto px-6 py-12 hidden">
-        <div class="flex items-center gap-4 mb-10">
-            <div class="w-2 h-10 gold-gradient rounded-full"></div>
-            <h2 class="text-3xl font-black">محاضرات الفيديو</h2>
-        </div>
-        <div id="video-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <main id="app-content" class="hidden container mx-auto px-6 py-10">
+        <h3 class="text-2xl font-black mb-8 pr-4 border-r-4 border-[#c5a059]">آخر المحاضرات المرفوعة</h3>
+        <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             </div>
-
-        <div class="flex items-center gap-4 mt-20 mb-10">
-            <div class="w-2 h-10 bg-red-600 rounded-full"></div>
-            <h2 class="text-3xl font-black text-red-700">المذكرات و PDF</h2>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 opacity-40">
-            <div class="bg-white p-8 rounded-[35px] text-center border-2 border-dashed">
-                <i class="fas fa-file-pdf text-4xl mb-3 text-red-500"></i>
-                <p class="font-black text-sm text-slate-400">قريباً</p>
-            </div>
-        </div>
     </main>
 
-    <div id="admin-gate" class="fixed inset-0 bg-black/95 z-[9000] hidden flex items-center justify-center p-6">
-        <div class="bg-white rounded-[45px] w-full max-w-xl p-10 relative shadow-2xl">
-            <button onclick="closeAdmin()" class="absolute top-6 left-6 text-slate-300 hover:text-black"><i class="fas fa-times-circle text-3xl"></i></button>
-            <h2 class="text-2xl font-black mb-2">لوحة الأستاذ محمد الشربيني</h2>
-            <p class="text-red-500 font-bold text-xs mb-8 underline">تحذير: هذه المنطقة خاصة بالمدرس فقط</p>
-            <div class="space-y-6">
-                <input type="text" id="v-title" placeholder="عنوان المحاضرة (مثال: الباب الأول - الذرة)" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold">
-                <input type="text" id="v-url" placeholder="رابط الفيديو من يوتيوب" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold">
-                <select id="v-grade" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold font-bold">
+    <div id="admin-panel" class="fixed inset-0 z-[9000] bg-black/95 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[32px] w-full max-w-lg p-8 text-slate-900 fade-in">
+            <h3 class="text-2xl font-black mb-2">إضافة درس جديد</h3>
+            <p class="text-red-500 text-xs font-bold mb-6 italic underline">خاص فقط بالأستاذ محمد الشربيني</p>
+            <div class="space-y-4">
+                <input type="text" id="v-title" placeholder="عنوان الدرس" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-[#c5a059]">
+                <input type="text" id="v-url" placeholder="رابط اليوتيوب" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-[#c5a059]">
+                <select id="v-grade" class="w-full p-4 bg-slate-100 rounded-2xl outline-none font-bold">
                     <option value="1-mid">أولى إعدادي</option>
                     <option value="2-mid">تانية إعدادي</option>
                     <option value="3-mid">تالتة إعدادي</option>
@@ -149,15 +152,14 @@
                     <option value="2-sec">تانية ثانوي</option>
                     <option value="3-sec">تالتة ثانوي</option>
                 </select>
-                <button onclick="uploadVideo()" class="w-full py-5 gold-gradient text-white rounded-[25px] font-black shadow-xl hover:scale-[1.02] transition">نشر المحاضرة الآن للطلاب</button>
+                <button id="pub-btn" onclick="publish()" class="btn-gold w-full py-5 rounded-2xl font-black text-slate-900 shadow-xl">نشر المحتوى الآن للطلاب 🚀</button>
+                <button onclick="closeAdmin()" class="w-full text-slate-400 font-bold text-sm">إلغاء</button>
             </div>
         </div>
     </div>
 
-    <a href="https://wa.me/201014401852" class="fixed bottom-6 left-6 w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center text-3xl shadow-2xl z-[500] animate-bounce"><i class="fab fa-whatsapp"></i></a>
-
     <script>
-        const config = {
+        const firebaseConfig = {
             apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ",
             authDomain: "sherbiny-academy.firebaseapp.com",
             projectId: "sherbiny-academy",
@@ -165,11 +167,11 @@
             messagingSenderId: "349228281326",
             appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff"
         };
-        firebase.initializeApp(config);
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let userGrade = localStorage.getItem('grade_code');
+        let activeGrade = localStorage.getItem('s_grade');
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -177,66 +179,83 @@
                 document.getElementById('app-header').classList.remove('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('user-avatar').src = user.photoURL;
-                document.getElementById('display-name').innerText = user.displayName;
-                if (!userGrade) showGrades(); else setGrade(userGrade, getGradeText(userGrade));
+                document.getElementById('user-name-display').innerText = user.displayName;
+                if(!activeGrade) openPicker(); else saveGrade(activeGrade, getGradeText(activeGrade));
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
             }
         });
 
         async function login() {
-            const p = new firebase.auth.GoogleAuthProvider();
-            try { await auth.signInWithPopup(p); } catch(e) { auth.signInWithRedirect(p); }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try { await auth.signInWithPopup(provider); } catch(e) { auth.signInWithRedirect(provider); }
         }
 
-        function logout() { auth.signOut(); localStorage.removeItem('grade_code'); }
-        function showGrades() { document.getElementById('grade-picker').classList.remove('hidden'); }
-        function toggleMenu() { document.getElementById('user-menu').classList.toggle('hidden'); }
+        function logout() { auth.signOut(); localStorage.removeItem('s_grade'); }
+        function openPicker() { document.getElementById('grade-picker').classList.remove('hidden'); }
+        function toggleMenu() { document.getElementById('drop-menu').classList.toggle('hidden'); }
 
-        function setGrade(code, name) {
-            userGrade = code;
-            localStorage.setItem('grade_code', code);
-            document.getElementById('current-grade-text').innerText = name;
+        function saveGrade(id, name) {
+            activeGrade = id;
+            localStorage.setItem('s_grade', id);
+            document.getElementById('grade-info').innerText = name;
             document.getElementById('grade-picker').classList.add('hidden');
-            fetchData(code);
+            loadContent(id);
         }
 
-        function getGradeText(c) {
-            const m = {'1-mid':'أولى إعدادي','2-mid':'تانية إعدادي','3-mid':'تالتة إعدادي','1-sec':'أولى ثانوي','2-sec':'تانية ثانوي','3-sec':'تالتة ثانوي'};
-            return m[c] || "غير محدد";
+        function getGradeText(id) {
+            const map = {'1-mid':'أولى إعدادي','2-mid':'تانية إعدادي','3-mid':'تالتة إعدادي','1-sec':'أولى ثانوي','2-sec':'تانية ثانوي','3-sec':'تالتة ثانوي'};
+            return map[id] || "غير محدد";
         }
 
-        function fetchData(grade) {
-            db.collection("lessons").where("grade", "==", grade).orderBy("createdAt", "desc").onSnapshot(snap => {
+        function loadContent(gradeId) {
+            const grid = document.getElementById('video-grid');
+            grid.innerHTML = '<p class="col-span-full text-center py-20 opacity-50">جاري تحميل المحاضرات...</p>';
+            
+            // فلترة حقيقية للصفوف
+            db.collection("lessons").where("grade", "==", gradeId).onSnapshot(snap => {
                 let h = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
+                let docs = [];
+                snap.forEach(d => docs.push(d.data()));
+                
+                // ترتيب يدوي لضمان الأحدث أولاً بدون أخطاء Index
+                docs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                docs.forEach(data => {
                     h += `
-                        <div class="bg-white p-5 rounded-[40px] border border-slate-100 shadow-sm">
-                            <div class="h-48 bg-slate-900 rounded-[30px] mb-5 flex items-center justify-center text-white/10 relative overflow-hidden">
-                                <i class="fas fa-play-circle text-6xl"></i>
-                                <div class="absolute top-4 right-4 bg-gold/20 text-gold text-[9px] px-3 py-1 rounded-full font-black">CHEMISTRY VIDEO</div>
+                        <div class="glass p-4 fade-in overflow-hidden group">
+                            <div class="h-44 bg-slate-900 rounded-2xl mb-4 flex items-center justify-center relative">
+                                <i class="fas fa-play-circle text-white/5 text-6xl group-hover:text-[#c5a059]/20 transition"></i>
+                                <span class="absolute bottom-3 left-3 bg-[#c5a059] text-slate-900 text-[8px] font-black px-2 py-1 rounded">LECTURE</span>
                             </div>
-                            <h4 class="font-black text-slate-800 mb-6 px-2 h-12 overflow-hidden">${d.title}</h4>
-                            <button onclick="window.open('${d.url}')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-gold transition shadow-lg">مشاهدة الحصة الآن</button>
+                            <h4 class="font-bold text-sm mb-4 h-10 overflow-hidden leading-relaxed">${data.title}</h4>
+                            <button onclick="window.open('${data.url}')" class="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-[#c5a059] hover:text-slate-900 transition">مشاهدة الفيديو</button>
                         </div>
                     `;
                 });
-                document.getElementById('video-list').innerHTML = h || `<p class="col-span-full text-center py-20 font-bold text-slate-300">قريباً جداً محاضرات ${getGradeText(grade)}</p>`;
+                grid.innerHTML = h || `<div class="col-span-full py-20 text-center opacity-20 font-black">قريباً محاضرات ${getGradeText(gradeId)}</div>`;
             });
         }
 
-        function checkAdmin() { if(prompt("كود الدخول للمدرس:") === "123") document.getElementById('admin-gate').classList.remove('hidden'); }
-        function closeAdmin() { document.getElementById('admin-gate').classList.add('hidden'); }
+        function adminCheck() { if(prompt("كود المدرس:") === "123") document.getElementById('admin-panel').classList.remove('hidden'); }
+        function closeAdmin() { document.getElementById('admin-panel').classList.add('hidden'); }
 
-        async function uploadVideo() {
-            const title = document.getElementById('v-title').value;
-            const url = document.getElementById('v-url').value;
-            const grade = document.getElementById('v-grade').value;
-            if(!title || !url) return alert("يرجى كتابة العنوان والرابط!");
-            await db.collection("lessons").add({ title, url, grade, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            alert("تم نشر الحصة بنجاح!");
-            closeAdmin();
+        async function publish() {
+            const t = document.getElementById('v-title').value;
+            const u = document.getElementById('v-url').value;
+            const g = document.getElementById('v-grade').value;
+            const b = document.getElementById('pub-btn');
+            if(!t || !u) return alert("اكمل البيانات");
+            
+            b.innerText = "جاري الحفظ...";
+            b.disabled = true;
+
+            try {
+                await db.collection("lessons").add({ title: t, url: u, grade: g, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                alert("تم النشر بنجاح ✅");
+                closeAdmin();
+            } catch(e) { alert("حدث خطأ"); }
+            finally { b.innerText = "نشر المحتوى الآن 🚀"; b.disabled = false; }
         }
     </script>
 </body>
