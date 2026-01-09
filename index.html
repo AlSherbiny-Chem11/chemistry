@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أكاديمية الشربيني للكيمياء | المنصة الرسمية</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; user-select: none; }
+        .glass-morphism { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="auth-gate" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[90] p-4">
+        <div class="glass-morphism p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-4 border-blue-600">
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-6">تسجيل الدخول</h2>
+            <button onclick="handleLogin()" class="w-full flex justify-center py-4 px-4 font-bold rounded-xl text-white bg-blue-700 hover:bg-blue-800 transition shadow-lg">
+                <i class="fab fa-google ml-3 mt-1"></i> الدخول عبر حساب Google
+            </button>
+        </div>
+    </div>
+
+    <div id="app" class="hidden min-h-screen">
+        <header class="glass-morphism sticky top-0 z-50 shadow-sm px-4 py-3">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <img id="user-avatar" class="w-12 h-12 rounded-full border-2 border-blue-600 shadow-md">
+                    <h2 id="user-display-name" class="font-bold text-slate-800">...</h2>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleAdminView()" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">لوحة الإدارة</button>
+                    <button onclick="handleLogout()" class="text-red-500 p-2"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-8">
+            <h1 class="text-3xl font-extrabold text-slate-900 mb-8 text-center">أكاديمية الشربيني <span class="text-blue-600">للكيمياء</span></h1>
+            <div id="lessons-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+
+            <div id="video-player-section" class="hidden mt-12 bg-white p-6 rounded-3xl shadow-xl border">
+                <h2 id="active-lesson-title" class="text-2xl font-bold mb-6">اسم المحاضرة</h2>
+                <div class="video-container">
+                    <iframe id="main-video-frame" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <button onclick="closePlayer()" class="mt-4 bg-red-100 text-red-600 px-6 py-2 rounded-xl font-bold">إغلاق</button>
+            </div>
+        </main>
+
+        <div id="admin-panel" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl">
+                <h2 class="text-2xl font-bold mb-6">إضافة درس جديد</h2>
+                <input type="text" id="new-lesson-title" class="w-full p-4 mb-4 bg-slate-50 border rounded-2xl" placeholder="عنوان الحصة">
+                <input type="text" id="new-lesson-url" class="w-full p-4 mb-4 bg-slate-50 border rounded-2xl" placeholder="رابط الفيديو">
+                <button onclick="submitNewLesson()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold">نشر الآن</button>
+                <button onclick="toggleAdminView()" class="w-full mt-2 text-slate-400">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // دمج بياناتك الخاصة يا مستر محمد
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ",
+            authDomain: "sherbiny-academy.firebaseapp.com",
+            projectId: "sherbiny-academy",
+            storageBucket: "sherbiny-academy.firebasestorage.app",
+            messagingSenderId: "349228281326",
+            appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff",
+            measurementId: "G-2MVWNG7HPS"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged(user => {
+            if (user) { showApp(user); } 
+            else { showAuthGate(); }
+        });
+
+        function handleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => alert("تأكد من تفعيل Google في Firebase"));
+        }
+
+        function handleLogout() { auth.signOut(); }
+
+        function showApp(user) {
+            document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('user-avatar').src = user.photoURL;
+            document.getElementById('user-display-name').innerText = user.displayName;
+            loadLessons();
+        }
+
+        function showAuthGate() {
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('auth-gate').classList.remove('hidden');
+        }
+
+        let lessonsData = JSON.parse(localStorage.getItem('sh_lessons')) || [];
+
+        function loadLessons() {
+            const grid = document.getElementById('lessons-grid');
+            grid.innerHTML = lessonsData.map((l, index) => `
+                <div class="glass-morphism p-6 rounded-3xl shadow-sm border-r-8 border-blue-600 cursor-pointer" onclick="playVideo('${l.title}', '${l.url}')">
+                    <h3 class="text-xl font-extrabold mb-2">${l.title}</h3>
+                    <p class="text-blue-600 font-bold">مشاهدة الآن ←</p>
+                </div>
+            `).join('');
+        }
+
+        function submitNewLesson() {
+            const title = document.getElementById('new-lesson-title').value;
+            let url = document.getElementById('new-lesson-url').value;
+            if(url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
+            lessonsData.push({title, url});
+            localStorage.setItem('sh_lessons', JSON.stringify(lessonsData));
+            loadLessons();
+            toggleAdminView();
+        }
+
+        function playVideo(title, url) {
+            document.getElementById('active-lesson-title').innerText = title;
+            document.getElementById('main-video-frame').src = url;
+            document.getElementById('video-player-section').classList.remove('hidden');
+        }
+
+        function closePlayer() {
+            document.getElementById('main-video-frame').src = "";
+            document.getElementById('video-player-section').classList.add('hidden');
+        }
+
+        function toggleAdminView() {
+            const pass = prompt("أدخل الكود السري:");
+            if(pass === "123") document.getElementById('admin-panel').classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
