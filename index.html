@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>أكاديمية الشربيني للكيمياء | المنصة الرسمية</title>
+    <title>أكاديمية الشربيني للكيمياء</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,95 +15,94 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #c5a059; --dark: #080c14; --panel: #111827; }
-        body { font-family: 'Cairo', sans-serif; background: radial-gradient(circle at top, #1e293b 0%, var(--dark) 100%); color: white; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Cairo', sans-serif; background: var(--dark); color: white; min-height: 100vh; overflow-x: hidden; }
         
-        /* مشغل الفيديو الداخلي */
-        #video-player-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 20000; align-items: center; justify-content: center; }
-        .video-container { width: 95%; max-width: 1000px; aspect-ratio: 16/9; background: black; border-radius: 30px; border: 2px solid var(--gold); overflow: hidden; box-shadow: 0 0 50px rgba(197, 160, 89, 0.2); }
+        /* لوحة المدرس العملاقة */
+        #admin-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; padding: 20px; overflow-y: auto; }
+        .admin-box { background: var(--panel); border: 3px solid var(--gold); width: 100%; max-width: 850px; border-radius: 40px; padding: 40px; margin: auto; box-shadow: 0 0 100px rgba(0,0,0,1); }
 
-        /* لوحة المدرس */
-        #admin-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto; }
-        .admin-box { background: var(--panel); border: 2px solid var(--gold); width: 100%; max-width: 750px; border-radius: 40px; padding: 35px; margin: auto; }
+        /* منطقة الحذف الخاصة */
+        .delete-section { background: rgba(239, 68, 68, 0.05); border: 2px dashed rgba(239, 68, 68, 0.2); border-radius: 30px; padding: 30px; margin-top: 40px; }
+        .delete-card { background: #1a1a1a; border-radius: 20px; padding: 20px; border-right: 6px solid #ef4444; transition: 0.3s; }
+        .delete-card:hover { transform: scale(1.01); background: #221111; }
 
-        /* كروت الدروس */
-        .lesson-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 35px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .lesson-card:hover { border-color: var(--gold); transform: translateY(-10px); background: rgba(197, 160, 89, 0.05); }
+        .btn-gold { background: linear-gradient(135deg, #c5a059 0%, #edd3a1 100%); color: #080c14; font-weight: 900; box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2); }
+        .lesson-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 35px; transition: 0.4s; }
+        .lesson-card:hover { border-color: var(--gold); transform: translateY(-10px); }
+
+        #video-player-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 20000; align-items: center; justify-content: center; }
+        .video-container { width: 95%; max-width: 1050px; aspect-ratio: 16/9; background: black; border-radius: 25px; border: 2px solid var(--gold); overflow: hidden; }
         
-        /* قائمة المنيو المعتمة */
-        #drop-menu { background: var(--panel) !important; border: 2px solid var(--gold); display: none; position: absolute; top: 70px; right: 0; width: 240px; z-index: 9999; border-radius: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .btn-gold { background: linear-gradient(135deg, #c5a059 0%, #edd3a1 100%); color: #080c14; font-weight: 900; transition: 0.3s; }
-        .btn-gold:active { transform: scale(0.96); }
-
-        .loader { width: 45px; height: 45px; border: 5px solid var(--gold); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 40px auto; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+        #drop-menu { background: var(--panel) !important; border: 2px solid var(--gold); display: none; position: absolute; top: 75px; right: 0; width: 250px; z-index: 9999; border-radius: 25px; }
     </style>
 </head>
 <body>
 
     <section id="auth-screen" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#080c14]">
         <div class="text-center animate__animated animate__zoomIn">
-            <div class="w-24 h-24 bg-[#c5a059] rounded-[35px] mx-auto mb-10 flex items-center justify-center shadow-2xl animate__animated animate__pulse animate__infinite">
-                <i class="fas fa-atom text-4xl text-black"></i>
+            <div class="w-24 h-24 bg-[#c5a059] rounded-[35px] mx-auto mb-10 flex items-center justify-center shadow-2xl">
+                <i class="fas fa-atom text-4xl text-black animate-spin-slow"></i>
             </div>
-            <h1 class="text-4xl font-black mb-12 text-white">أكاديمية الشربيني</h1>
-            <button onclick="login()" class="btn-gold px-14 py-5 rounded-2xl flex items-center gap-4 text-xl shadow-xl">
+            <h1 class="text-4xl font-black mb-12 text-white">أكاديمية الشربيني 🧪</h1>
+            <button onclick="login()" class="btn-gold px-16 py-6 rounded-2xl font-black text-xl flex items-center gap-4 mx-auto">
                 <i class="fab fa-google"></i> دخول المنصة
             </button>
         </div>
     </section>
 
-    <header id="app-header" class="hidden sticky top-0 z-[1000] border-b border-white/5 bg-[#0f172a]/95 backdrop-blur-md px-5 py-4">
+    <header id="app-header" class="hidden sticky top-0 z-[1000] border-b border-white/5 bg-[#0f172a]/95 backdrop-blur-md px-6 py-4">
         <div class="container mx-auto flex justify-between items-center">
             <div class="relative">
                 <div class="flex items-center gap-3 cursor-pointer group" onclick="toggleMenu()">
-                    <img id="user-avatar" class="w-12 h-12 rounded-2xl border-2 border-[#c5a059] transition group-hover:scale-105">
-                    <span id="user-first-name" class="font-black text-sm text-white"></span>
+                    <img id="user-avatar" class="w-12 h-12 rounded-2xl border-2 border-[#c5a059]">
+                    <span id="user-first-name" class="font-black text-white"></span>
                     <i class="fas fa-chevron-down text-[10px] text-[#c5a059]"></i>
                 </div>
-                <div id="drop-menu" class="p-2 animate__animated animate__fadeInUp animate__faster">
-                    <button onclick="openGradePicker()" class="w-full text-right p-4 hover:bg-white/5 rounded-2xl text-xs font-black flex items-center gap-3"><i class="fas fa-sync text-[#c5a059]"></i> تغيير الصف الدراسي</button>
-                    <button onclick="checkAdmin()" class="w-full text-right p-4 hover:bg-red-500/10 rounded-2xl text-xs font-black text-red-400 flex items-center gap-3"><i class="fas fa-user-shield"></i> لوحة تحكم المدرس</button>
-                    <button onclick="logout()" class="w-full text-right p-4 hover:bg-white/5 rounded-2xl text-xs font-black text-slate-500 border-t border-white/5 mt-2 flex items-center gap-3"><i class="fas fa-power-off"></i> تسجيل الخروج</button>
+                <div id="drop-menu" class="p-2 animate__animated animate__fadeInUp">
+                    <button onclick="openGradePicker()" class="w-full text-right p-4 hover:bg-white/5 rounded-xl text-sm font-black flex items-center gap-3"><i class="fas fa-sync text-[#c5a059]"></i> تغيير الصف</button>
+                    <button onclick="checkAdmin()" class="w-full text-right p-4 hover:bg-red-500/10 rounded-xl text-sm font-black text-red-400 flex items-center gap-3"><i class="fas fa-user-shield"></i> لوحة المدرس</button>
+                    <button onclick="logout()" class="w-full text-right p-4 hover:bg-white/5 rounded-xl text-sm font-black border-t border-white/5 mt-2 flex items-center gap-3"><i class="fas fa-power-off"></i> خروج</button>
                 </div>
             </div>
-            <h2 class="font-black text-xl italic tracking-tighter text-[#c5a059]">SHERBINY ACADEMY</h2>
+            <h2 class="font-black text-xl text-[#c5a059] italic">SHERBINY ACADEMY</h2>
         </div>
     </header>
 
     <div id="grade-picker" class="fixed inset-0 z-[8000] bg-[#080c14] hidden flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
-        <h3 class="text-3xl font-black mb-12 animate__animated animate__fadeInDown">اختر المرحلة الدراسية 🧪</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl px-4 animate__animated animate__zoomIn">
-            <button onclick="selectGrade('1-mid', 'الأول الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/5 hover:border-blue-400 transition-all font-black text-slate-300">الأول الإعدادي</button>
-            <button onclick="selectGrade('2-mid', 'الثاني الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/5 hover:border-blue-400 transition-all font-black text-slate-300">الثاني الإعدادي</button>
-            <button onclick="selectGrade('3-mid', 'الثالث الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/5 hover:border-blue-400 transition-all font-black text-slate-300">الثالث الإعدادي</button>
-            <button onclick="selectGrade('1-sec', 'الأول الثانوي')" class="p-10 bg-[#c5a059]/5 rounded-[40px] border border-[#c5a059]/20 hover:border-[#c5a059] transition-all font-black text-[#c5a059]">الأول الثانوي</button>
-            <button onclick="selectGrade('2-sec', 'الثاني الثانوي')" class="p-10 bg-[#c5a059]/5 rounded-[40px] border border-[#c5a059]/20 hover:border-[#c5a059] transition-all font-black text-[#c5a059]">الثاني الثانوي</button>
-            <button onclick="selectGrade('3-sec', 'الثالث الثانوي')" class="p-10 bg-[#c5a059]/10 rounded-[40px] border border-[#c5a059]/30 hover:border-[#c5a059] transition-all font-black text-[#c5a059]">الثالث الثانوي</button>
+        <h3 class="text-3xl font-black mb-12 animate__animated animate__fadeInDown">مرحباً بك.. اختر صفك الدراسي</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl animate__animated animate__zoomIn">
+            <button onclick="selectGrade('1-mid', 'الأول الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/10 font-black hover:border-white transition">أولى إعدادي</button>
+            <button onclick="selectGrade('2-mid', 'الثاني الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/10 font-black hover:border-white transition">تانية إعدادي</button>
+            <button onclick="selectGrade('3-mid', 'الثالث الإعدادي')" class="p-10 bg-white/5 rounded-[40px] border border-white/10 font-black hover:border-white transition">تالتة إعدادي</button>
+            <button onclick="selectGrade('1-sec', 'الأول الثانوي')" class="p-10 bg-[#c5a059]/10 rounded-[40px] border border-[#c5a059]/30 font-black text-[#c5a059] hover:bg-[#c5a059]/20 transition">أولى ثانوي</button>
+            <button onclick="selectGrade('2-sec', 'الثاني الثانوي')" class="p-10 bg-[#c5a059]/10 rounded-[40px] border border-[#c5a059]/30 font-black text-[#c5a059] hover:bg-[#c5a059]/20 transition">تانية ثانوي</button>
+            <button onclick="selectGrade('3-sec', 'الثالث الثانوي')" class="p-10 bg-[#c5a059]/10 rounded-[40px] border border-[#c5a059]/30 font-black text-[#c5a059] hover:bg-[#c5a059]/20 transition">تالتة ثانوي</button>
         </div>
     </div>
 
     <div id="admin-modal">
-        <div class="admin-box my-10 animate__animated animate__zoomIn">
-            <div class="flex justify-between items-center mb-10 pb-4 border-b border-white/10">
-                <h3 class="text-2xl font-black text-[#c5a059]">إدارة المحتوى التعليمي ⚙️</h3>
-                <i onclick="closeAdmin()" class="fas fa-times-circle text-3xl cursor-pointer text-slate-500 hover:text-white transition"></i>
+        <div class="admin-box animate__animated animate__zoomIn">
+            <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-5">
+                <h3 class="text-2xl font-black text-[#c5a059]">لوحة إدارة المنصة ⚙️</h3>
+                <i onclick="closeAdmin()" class="fas fa-times-circle text-4xl cursor-pointer text-slate-500 hover:text-white"></i>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10 pb-10 border-b border-white/10">
-                <input type="text" id="v-title" placeholder="عنوان الدرس" class="p-5 bg-white/5 rounded-2xl outline-none border border-white/10 focus:border-[#c5a059]">
-                <input type="text" id="v-url" placeholder="رابط يوتيوب أو جوجل درايف" class="p-5 bg-white/5 rounded-2xl outline-none border border-white/10 focus:border-[#c5a059]">
-                <select id="v-grade" class="p-5 bg-[#111827] rounded-2xl border border-white/10 outline-none font-bold text-white">
+            <div class="grid grid-cols-1 gap-5 bg-[#080c14] p-8 rounded-[35px] border border-white/5 shadow-inner">
+                <h4 class="font-black mb-2 text-[#c5a059]">رفع محاضرة جديدة:</h4>
+                <input type="text" id="v-title" placeholder="اسم الدرس" class="p-5 bg-white/5 rounded-2xl border border-white/10 outline-none focus:border-[#c5a059]">
+                <input type="text" id="v-url" placeholder="رابط يوتيوب أو جوجل درايف" class="p-5 bg-white/5 rounded-2xl border border-white/10 outline-none focus:border-[#c5a059]">
+                <select id="v-grade" class="p-5 bg-[#111827] text-white rounded-2xl border border-white/10 outline-none font-bold">
                     <option value="1-mid">الأول الإعدادي</option><option value="2-mid">الثاني الإعدادي</option><option value="3-mid">الثالث الإعدادي</option>
                     <option value="1-sec">الأول الثانوي</option><option value="2-sec">الثاني الثانوي</option><option value="3-sec">الثالث الثانوي</option>
                 </select>
-                <button onclick="publish()" class="btn-gold rounded-2xl font-black py-5 shadow-lg">نشر الدرس الآن 🚀</button>
+                <button onclick="publish()" id="pub-btn" class="btn-gold p-5 rounded-2xl font-black text-lg">نشر الدرس الآن 🚀</button>
             </div>
 
-            <h4 class="font-black mb-6 text-sm text-slate-500">الدروس الحالية (اضغط للحذف النهائي من جوجل):</h4>
-            <div id="admin-lessons-list" class="space-y-3 max-h-80 overflow-y-auto pr-3"></div>
+            <div class="delete-section">
+                <h4 class="font-black text-red-500 text-xl mb-8 flex items-center gap-3"><i class="fas fa-trash-alt"></i> مركز حذف المحاضرات</h4>
+                <div id="admin-lessons-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    </div>
+            </div>
         </div>
     </div>
 
@@ -111,30 +110,20 @@
         <div class="video-container animate__animated animate__zoomIn" onclick="event.stopPropagation()">
             <iframe id="main-video-frame" class="w-full h-full" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
         </div>
-        <button class="absolute top-8 right-8 text-white text-5xl hover:text-red-500 transition"><i class="fas fa-times"></i></button>
+        <button class="absolute top-8 right-8 text-white text-5xl hover:text-red-500 transition">&times;</button>
     </div>
 
     <main id="app-content" class="hidden container mx-auto px-6 py-12">
-        <div class="mb-14 flex justify-between items-center border-r-4 border-[#c5a059] pr-5">
-            <h3 id="grade-badge-title" class="text-3xl font-black">المحاضرات</h3>
+        <div class="flex items-center gap-4 mb-12 border-r-8 border-[#c5a059] pr-6">
+            <h3 id="grade-title" class="text-3xl font-black">المحاضرات</h3>
         </div>
         <div id="lesson-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12"></div>
     </main>
 
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ",
-            authDomain: "sherbiny-academy.firebaseapp.com",
-            projectId: "sherbiny-academy",
-            storageBucket: "sherbiny-academy.firebasestorage.app",
-            messagingSenderId: "349228281326",
-            appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
+        const config = { apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ", authDomain: "sherbiny-academy.firebaseapp.com", projectId: "sherbiny-academy", storageBucket: "sherbiny-academy.firebasestorage.app", messagingSenderId: "349228281326", appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff" };
+        firebase.initializeApp(config);
+        const auth = firebase.auth(), db = firebase.firestore();
         let s_grade = localStorage.getItem('s_grade');
 
         auth.onAuthStateChanged(user => {
@@ -144,110 +133,89 @@
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('user-avatar').src = user.photoURL;
                 document.getElementById('user-first-name').innerText = user.displayName.split(' ')[0];
-                if(!s_grade) openGradePicker(); else selectGrade(s_grade, getGradeName(s_grade));
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
+                if(!s_grade) openGradePicker(); else selectGrade(s_grade, "");
             }
         });
 
-        async function login() { const p = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(p); } catch(e) { auth.signInWithRedirect(p); } }
+        async function login() { const p = new firebase.auth.GoogleAuthProvider(); await auth.signInWithPopup(p); }
         function logout() { auth.signOut(); localStorage.removeItem('s_grade'); location.reload(); }
         function toggleMenu() { const m = document.getElementById('drop-menu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-        function openGradePicker() { document.getElementById('grade-picker').classList.remove('hidden'); }
+        function openGradePicker() { document.getElementById('grade-picker').classList.remove('hidden'); toggleMenu(); }
         
-        function getGradeName(id) {
-            const m = {'1-mid':'الأول الإعدادي','2-mid':'الثاني الإعدادي','3-mid':'الثالث الإعدادي','1-sec':'الأول الثانوي','2-sec':'الثاني الثانوي','3-sec':'الثالث الثانوي'};
-            return m[id] || "عام";
-        }
-
         function selectGrade(id, name) {
             s_grade = id;
             localStorage.setItem('s_grade', id);
             document.getElementById('grade-picker').classList.add('hidden');
-            document.getElementById('grade-badge-title').innerText = "محاضرات " + (name || getGradeName(id));
-            document.getElementById('drop-menu').style.display = 'none';
+            const map = {'1-mid':'الأول الإعدادي','2-mid':'الثاني الإعدادي','3-mid':'الثالث الإعدادي','1-sec':'الأول الثانوي','2-sec':'الثاني الثانوي','3-sec':'الثالث الثانوي'};
+            document.getElementById('grade-title').innerText = "محاضرات " + (name || map[id]);
             loadLessons(id);
         }
 
-        function formatVideoUrl(url) {
+        function formatUrl(url) {
             if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/');
             if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
             if (url.includes('drive.google.com') && url.includes('/view')) return url.replace('/view', '/preview');
             return url;
         }
 
-        function playVideo(url) {
-            document.getElementById('main-video-frame').src = formatVideoUrl(url);
-            document.getElementById('video-player-modal').style.display = 'flex';
-        }
-
-        function closePlayer() {
-            document.getElementById('main-video-frame').src = "";
-            document.getElementById('video-player-modal').style.display = 'none';
-        }
-
-        function checkAdmin() {
-            if(prompt("كلمة سر الإدارة:") === "123") {
-                document.getElementById('admin-modal').style.display = 'flex';
-                loadAdminLessons();
-            } else alert("خطأ في الكود!");
-        }
-
-        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
-
-        async function publish() {
-            const t = document.getElementById('v-title').value, u = document.getElementById('v-url').value, g = document.getElementById('v-grade').value;
-            if(!t || !u) return alert("يرجى إكمال البيانات أولاً!");
-            await db.collection("lessons").add({ title: t, url: u, grade: g, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-            alert("تم رفع المحاضرة بنجاح لموقع جوجل ✅");
-            document.getElementById('v-title').value = ""; document.getElementById('v-url').value = "";
-            loadAdminLessons();
-        }
-
         function loadLessons(gradeId) {
             const grid = document.getElementById('lesson-grid');
-            grid.innerHTML = '<div class="col-span-full"><div class="loader"></div></div>';
-            db.collection("lessons").where("grade", "==", gradeId).orderBy("createdAt", "desc").onSnapshot(snap => {
+            // لا يوجد Loader دائري هنا
+            db.collection("lessons").where("grade", "==", gradeId).onSnapshot(snap => {
+                if(snap.empty) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-32 opacity-20 text-2xl font-black">لا يوجد دروس حالياً</div>';
+                    return;
+                }
                 let h = "";
                 snap.forEach(doc => {
                     const item = doc.data();
-                    h += `
-                        <div class="lesson-card p-8 animate__animated animate__fadeInUp">
-                            <div class="h-48 bg-slate-900 rounded-[30px] mb-8 flex items-center justify-center relative group cursor-pointer" onclick="playVideo('${item.url}')">
-                                <i class="fas fa-play text-5xl text-[#c5a059] opacity-40 group-hover:scale-110 group-hover:opacity-100 transition"></i>
+                    h += `<div class="lesson-card p-8 animate__animated animate__fadeInUp">
+                            <div class="h-48 bg-slate-900 rounded-[30px] mb-8 flex items-center justify-center cursor-pointer group" onclick="playVideo('${item.url}')">
+                                <i class="fas fa-play text-5xl text-[#c5a059] opacity-40 group-hover:opacity-100 group-hover:scale-125 transition"></i>
                             </div>
-                            <h4 class="font-bold text-base mb-8 h-12 overflow-hidden text-slate-200 leading-relaxed">${item.title}</h4>
-                            <button onclick="playVideo('${item.url}')" class="btn-gold w-full py-5 rounded-2xl text-[11px] font-black shadow-lg">مشاهدة الحصة الآن</button>
-                        </div>`;
+                            <h4 class="font-black text-lg mb-8 h-12 overflow-hidden text-slate-200">${item.title}</h4>
+                            <button onclick="playVideo('${item.url}')" class="btn-gold w-full py-5 rounded-2xl font-black">مشاهدة الحصة الآن</button>
+                          </div>`;
                 });
-                grid.innerHTML = h || '<p class="col-span-full text-center py-20 opacity-20 text-xl font-black">لا يوجد دروس حالياً</p>';
+                grid.innerHTML = h;
             });
+        }
+
+        async function publish() {
+            const t = document.getElementById('v-title').value, u = document.getElementById('v-url').value, g = document.getElementById('v-grade').value, btn = document.getElementById('pub-btn');
+            if(!t || !u) return alert("املأ البيانات!");
+            btn.innerText = "جاري الرفع..."; btn.disabled = true;
+            await db.collection("lessons").add({ title: t, url: u, grade: g, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            alert("تم الرفع ✅");
+            document.getElementById('v-title').value = ""; document.getElementById('v-url').value = "";
+            btn.innerText = "نشر الدرس الآن 🚀"; btn.disabled = false;
+            loadAdminLessons();
         }
 
         function loadAdminLessons() {
             const list = document.getElementById('admin-lessons-list');
-            list.innerHTML = "جاري جلب البيانات...";
+            list.innerHTML = "جاري التحميل...";
             db.collection("lessons").where("grade", "==", s_grade).get().then(snap => {
                 let h = "";
+                if(snap.empty) { list.innerHTML = "القائمة فارغة"; return; }
                 snap.forEach(doc => {
-                    h += `<div class="flex justify-between items-center bg-white/5 p-5 rounded-2xl border border-white/5 animate__animated animate__fadeInRight">
-                            <span class="text-xs font-bold truncate ml-4">${doc.data().title}</span>
-                            <button onclick="deleteDoc('${doc.id}')" class="text-red-500 hover:bg-red-500/10 px-5 py-2 rounded-xl text-xs font-black border border-red-500/20 transition">حذف نهائي</button>
+                    h += `<div class="delete-card flex justify-between items-center animate__animated animate__fadeInRight">
+                            <div class="flex flex-col"><span class="text-[10px] text-[#c5a059] font-black">العنوان:</span><span class="font-black text-sm text-white">${doc.data().title}</span></div>
+                            <button onclick="deleteDoc('${doc.id}')" class="bg-red-600/10 text-red-500 border border-red-500/30 px-6 py-3 rounded-xl font-black hover:bg-red-600 hover:text-white transition">حذف الفيديو</button>
                           </div>`;
                 });
-                list.innerHTML = h || "القائمة فارغة لهذا الصف";
+                list.innerHTML = h;
             });
         }
 
         async function deleteDoc(id) {
-            if(confirm("هل تريد حذف هذا الدرس نهائياً من قاعدة البيانات؟")) {
-                try {
-                    await db.collection("lessons").doc(id).delete();
-                    alert("تم الحذف بنجاح من جوجل ✅");
-                    loadAdminLessons();
-                } catch(e) { alert("خطأ في الحذف!"); }
-            }
+            if(confirm("حذف الفيديو نهائياً؟")) { await db.collection("lessons").doc(id).delete(); alert("تم الحذف ✅"); loadAdminLessons(); }
         }
+
+        function checkAdmin() { if(prompt("كود الإدارة:") === "123") { document.getElementById('admin-modal').style.display = 'flex'; loadAdminLessons(); } }
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+        function playVideo(url) { document.getElementById('main-video-frame').src = formatUrl(url); document.getElementById('video-player-modal').style.display = 'flex'; }
+        function closePlayer() { document.getElementById('main-video-frame').src = ""; document.getElementById('video-player-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
