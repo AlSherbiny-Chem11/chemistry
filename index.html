@@ -381,27 +381,37 @@
                 document.getElementById('app-content').classList.add('hidden');
             }
         });
+        
+// --- وظائف الـ Authentication المحدثة لتجنب مشاكل التعليق ---
+function triggerGoogleLogin() {
+    console.log("جاري محاولة تسجيل الدخول...");
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    // ضبط اللغة للعربية
+    auth.useDeviceLanguage();
 
-        // --- وظائف الـ Authentication ---
-        function triggerGoogleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => alert("فشل الدخول: " + e.message));
-        }
-
-        function processSignOut() {
-            if(confirm("هل تريد الخروج من المنصة؟")) {
-                auth.signOut();
-                localStorage.removeItem('user_grade_pref');
+    // محاولة تسجيل الدخول
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("تم الدخول بنجاح:", result.user.displayName);
+        })
+        .catch((error) => {
+            console.error("خطأ في تسجيل الدخول:", error);
+            
+            // حل بديل إذا فشل الـ Popup (مهم جداً للموبايل)
+            if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+                auth.signInWithRedirect(provider);
+            } else {
+                alert("حدث خطأ: " + error.message);
             }
-        }
+        });
+}
 
-        // --- وظائف التحكم في الصفوف ---
-        function showGradeSelector() {
-            document.getElementById('grade-selector-modal').classList.remove('hidden');
-        }
-
-        function applyGradeSelection(gradeCode, label) {
-            selectedGradeCode = gradeCode;
-            localStorage.setItem('user_grade_pref', gradeCode);
-            document.getElementById('grade-badge').innerText = label;
-            document.getElementById('grade-selector
+// معالجة النتيجة بعد الـ Redirect (لضمان العمل على الموبايل)
+auth.getRedirectResult().then((result) => {
+    if (result.user) {
+        console.log("تم الدخول بعد التحويل:", result.user.displayName);
+    }
+}).catch((error) => {
+    console.error("خطأ في التحويل:", error);
+});
