@@ -3,298 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>أكاديمية الشربيني للكيمياء - المنصة الرسمية v5.0</title>
+    <title>أكاديمية الشربيني للكيمياء | المنصة الرسمية</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* قسم التنسيق البصري العميق - Deep UI System */
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        :root { --gold: #d4af37; --dark: #0f172a; }
+        body { font-family: 'Cairo', sans-serif; background: #f8fafc; overflow-x: hidden; }
         
-        :root {
-            --primary-gold: #d4af37;
-            --secondary-gold: #bf953f;
-            --dark-navy: #0f172a;
-            --soft-slate: #f1f5f9;
-            --glass: rgba(255, 255, 255, 0.9);
-        }
+        /* خلفية ذرات كيمياء متطورة */
+        .chem-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.05; background-image: radial-gradient(var(--gold) 1px, transparent 1px); background-size: 30px 30px; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .gold-gradient { background: linear-gradient(90deg, #bf953f, #d4af37, #bf953f); }
+        
+        /* شريط الأخبار */
+        .ticker-container { background: linear-gradient(90deg, #0f172a, #1e293b); color: #d4af37; padding: 10px 0; font-weight: bold; overflow: hidden; border-bottom: 2px solid var(--gold); }
+        .ticker-text { display: inline-block; white-space: nowrap; animation: ticker 20s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-        body {
-            background-color: #f8fafc;
-            color: var(--dark-navy);
-            overflow-x: hidden;
-            background-image: linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        /* شريط الأخبار المتحرك */
-        .marquee-container {
-            background: linear-gradient(90deg, var(--secondary-gold), var(--primary-gold));
-            height: 35px;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 1001;
-        }
-
-        .marquee-text {
-            white-space: nowrap;
-            animation: scroll-text 25s linear infinite;
-            color: white;
-            font-weight: 800;
-            font-size: 14px;
-        }
-
-        @keyframes scroll-text {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* تصميم شاشة الدخول الاحترافية */
-        #auth-screen {
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-        }
-
-        .login-card {
-            background: white;
-            padding: 3rem;
-            border-radius: 40px;
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transform: translateY(0);
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .login-card:hover {
-            transform: translateY(-10px);
-        }
-
-        .google-btn {
-            background: #000;
-            color: #fff;
-            padding: 1.2rem;
-            border-radius: 20px;
-            width: 100%;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: 2px solid transparent;
-        }
-
-        .google-btn:active {
-            transform: scale(0.95);
-            background: #d4af37;
-        }
-
-        /* الهيدر الزجاجي */
-        .main-header {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-bottom: 2px solid var(--primary-gold);
-            padding: 15px 25px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: justify-between;
-            align-items: center;
-        }
-
-        /* نظام التيوبات (الصفوف) */
-        #grade-picker {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.98);
-            z-index: 5000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .grade-option {
-            background: white;
-            width: 100%;
-            max-width: 500px;
-            padding: 1.5rem;
-            margin: 10px 0;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: 3px solid transparent;
-        }
-
-        .grade-option:hover {
-            border-color: var(--primary-gold);
-            transform: scale(1.02);
-        }
-
-        /* كروت المحتوى */
-        .content-card {
-            background: white;
-            border-radius: 30px;
-            padding: 1rem;
-            border: 1px solid #e2e8f0;
-            transition: 0.4s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .content-card:hover {
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
-            border-color: var(--primary-gold);
-        }
-
-        /* الأزرار العائمة */
-        .wa-float {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            background: #25d366;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 35px;
-            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
-            z-index: 999;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* إخفاء العناصر */
-        .hidden { display: none !important; }
+        /* كروت المراحل الدراسية */
+        .grade-card { background: white; border-radius: 30px; border: 2px solid #f1f5f9; transition: 0.4s; cursor: pointer; position: relative; overflow: hidden; }
+        .grade-card:hover { border-color: var(--gold); transform: translateY(-10px); box-shadow: 0 15px 30px rgba(212,175,55,0.15); }
     </style>
 </head>
 <body>
+    <div class="chem-bg"></div>
 
-    <div class="marquee-container">
-        <div class="marquee-text">
-            مرحباً بك في أكاديمية الشربيني للكيمياء .. نظام التعلم الذكي 2026 .. سجل حضورك الآن وابدأ رحلة التفوق .. 🧪 ⚗️
+    <div class="ticker-container">
+        <div class="ticker-text">
+             🌟 مرحباً بكم في صرح الكيمياء .. الأستاذ محمد الشربيني يتمنى لكم عاماً دراسياً مليئاً بالتفوق .. انتظروا مفاجآت ليالي الامتحان قريباً .. 🌟
         </div>
     </div>
 
-    <div id="auth-screen">
-        <div class="login-card">
-            <div class="w-24 h-24 bg-[#d4af37] rounded-[30px] mx-auto mb-8 flex items-center justify-center shadow-2xl rotate-6">
+    <div id="auth-screen" class="fixed inset-0 bg-[#0f172a] z-[9999] flex items-center justify-center">
+        <div class="bg-white p-10 rounded-[45px] text-center w-full max-w-sm shadow-[0_0_60px_rgba(212,175,55,0.2)]">
+            <div class="w-24 h-24 gold-gradient rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl rotate-3">
                 <i class="fas fa-atom text-white text-5xl"></i>
             </div>
-            <h2 class="text-3xl font-black mb-2 text-slate-800">دخول المنصة</h2>
-            <p class="text-slate-400 font-bold mb-10 text-sm">أكاديمية الشربيني للكيمياء</p>
-            
-            <button id="google-login-btn" onclick="startLoginProcess()" class="google-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="24">
-                <span>دخول عبر جوجل</span>
+            <h1 class="text-3xl font-black mb-2 text-slate-800">دخول المنصة</h1>
+            <p class="text-slate-400 font-bold mb-10">منصة الأستاذ محمد الشربيني</p>
+            <button onclick="login()" class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black flex items-center justify-center gap-4 hover:shadow-xl transition-all active:scale-95">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="22"> تسجيل دخول الطلاب
             </button>
-            
-            <div id="login-loader" class="hidden mt-6 text-[#d4af37] font-bold">
-                <i class="fas fa-circle-notch fa-spin"></i> جاري التحقق...
-            </div>
         </div>
     </div>
 
-    <header class="main-header hidden" id="app-header">
-        <div class="flex items-center gap-4">
-            <img id="user-photo" onclick="toggleMenu()" class="w-12 h-12 rounded-2xl border-2 border-[#d4af37] cursor-pointer shadow-sm">
-            <div id="user-popover" class="hidden absolute top-20 right-6 w-56 bg-white rounded-3xl shadow-2xl border p-2 z-[2000]">
-                <button onclick="showGradePicker()" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl font-bold text-blue-600 text-sm">تغيير الصف</button>
-                <button onclick="adminLogin()" class="w-full text-right p-3 hover:bg-red-50 rounded-xl font-bold text-red-600 text-sm">لوحة المدرس</button>
-                <button onclick="signOut()" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl text-sm">تسجيل الخروج</button>
+    <header id="app-header" class="sticky top-0 bg-white/90 backdrop-blur-md border-bottom-2 border-gold py-4 px-6 z-[1000] hidden border-b-2 border-[#d4af37]">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="relative group">
+                    <img id="user-avatar" onclick="toggleMenu()" class="w-12 h-12 rounded-2xl border-2 border-gold cursor-pointer object-cover shadow-md">
+                    <div id="user-menu" class="hidden absolute top-16 right-0 w-60 bg-white rounded-3xl shadow-2xl border p-2 animate-show">
+                        <div class="p-4 border-b border-slate-50">
+                            <p class="text-[10px] font-bold text-slate-400">أهلاً بك يا بطل</p>
+                            <p id="display-name" class="font-black text-slate-800 text-sm"></p>
+                        </div>
+                        <button onclick="showGrades()" class="w-full text-right p-4 hover:bg-slate-50 font-bold text-blue-600 text-sm rounded-2xl"><i class="fas fa-sync-alt ml-2"></i> تغيير الصف الدراسي</button>
+                        <button onclick="checkAdmin()" class="w-full text-right p-4 hover:bg-red-50 font-bold text-red-600 text-sm rounded-2xl"><i class="fas fa-user-shield ml-2"></i> لوحة المدرس (خاص فقط)</button>
+                        <button onclick="logout()" class="w-full text-right p-4 hover:bg-slate-50 font-bold text-slate-400 text-sm rounded-2xl"><i class="fas fa-sign-out-alt ml-2"></i> تسجيل الخروج</button>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="text-center">
-            <h1 class="text-xl font-black text-slate-800">أكاديمية <span class="text-[#d4af37]">الشربيني</span></h1>
-            <p id="grade-label" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">تحميل...</p>
+            <div class="text-center">
+                <h1 class="font-black text-xl text-slate-800">أكاديمية الشربيني</h1>
+                <p id="current-grade-text" class="text-[10px] font-bold text-gold uppercase tracking-tighter">جاري التحميل...</p>
+            </div>
         </div>
     </header>
 
-    <div id="grade-picker">
-        <h2 class="text-white text-2xl font-black mb-10">اختر صفك الدراسي</h2>
-        <div class="w-full max-w-lg">
-            <div onclick="saveGrade('1-mid', 'الأول الإعدادي')" class="grade-option">
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-black">1إ</div>
-                <span class="font-black text-lg">الأول الإعدادي</span>
+    <div id="grade-picker" class="fixed inset-0 bg-slate-900/98 z-[8000] hidden flex flex-col items-center justify-center p-6 overflow-y-auto">
+        <h2 class="text-white text-3xl font-black mb-4">مرحباً بك في رحلة التفوق</h2>
+        <p class="text-slate-400 font-bold mb-12">اختر صفك الدراسي لفتح المحتوى التعليمي</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+            <div onclick="setGrade('1-mid', 'الأول الإعدادي')" class="grade-card p-8 text-center bg-white">
+                <i class="fas fa-vial text-3xl text-blue-500 mb-4"></i>
+                <h3 class="font-black">الأول الإعدادي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
             </div>
-            <div onclick="saveGrade('2-mid', 'الثاني الإعدادي')" class="grade-option">
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-black">2إ</div>
-                <span class="font-black text-lg">الثاني الإعدادي</span>
+            <div onclick="setGrade('2-mid', 'الثاني الإعدادي')" class="grade-card p-8 text-center bg-white">
+                <i class="fas fa-flask text-3xl text-blue-500 mb-4"></i>
+                <h3 class="font-black">الثاني الإعدادي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
             </div>
-            <div onclick="saveGrade('3-mid', 'الثالث الإعدادي')" class="grade-option">
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-black">3إ</div>
-                <span class="font-black text-lg">الثالث الإعدادي</span>
+            <div onclick="setGrade('3-mid', 'الثالث الإعدادي')" class="grade-card p-8 text-center bg-white">
+                <i class="fas fa-microscope text-3xl text-blue-500 mb-4"></i>
+                <h3 class="font-black">الثالث الإعدادي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Preparatory Stage</p>
             </div>
-            <div onclick="saveGrade('1-sec', 'الأول الثانوي')" class="grade-option">
-                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-black">1ث</div>
-                <span class="font-black text-lg text-amber-700">الأول الثانوي</span>
+            <div onclick="setGrade('1-sec', 'الأول الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
+                <i class="fas fa-atom text-3xl text-amber-500 mb-4"></i>
+                <h3 class="font-black text-amber-900">الأول الثانوي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
             </div>
-            <div onclick="saveGrade('2-sec', 'الثاني الثانوي')" class="grade-option">
-                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-black">2ث</div>
-                <span class="font-black text-lg text-amber-700">الثاني الثانوي</span>
+            <div onclick="setGrade('2-sec', 'الثاني الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
+                <i class="fas fa-dna text-3xl text-amber-500 mb-4"></i>
+                <h3 class="font-black text-amber-900">الثاني الثانوي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
             </div>
-            <div onclick="saveGrade('3-sec', 'الثالث الثانوي')" class="grade-option">
-                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 font-black">3ث</div>
-                <span class="font-black text-lg text-amber-700">الثالث الثانوي</span>
+            <div onclick="setGrade('3-sec', 'الثالث الثانوي')" class="grade-card p-8 text-center bg-white border-amber-100">
+                <i class="fas fa-brain text-3xl text-amber-500 mb-4"></i>
+                <h3 class="font-black text-amber-900">الثالث الثانوي</h3>
+                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Secondary Stage</p>
             </div>
         </div>
     </div>
 
-    <main id="main-content" class="container mx-auto px-6 py-10 hidden">
-        <div id="lessons-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="content-card py-20 text-center border-dashed border-2 border-slate-200">
-                <i class="fas fa-cloud-sun text-4xl text-slate-200 mb-4"></i>
-                <p class="font-bold text-slate-300">جاري البحث عن دروس متاحة...</p>
+    <main id="app-content" class="container mx-auto px-6 py-12 hidden">
+        <div class="flex items-center gap-4 mb-10">
+            <div class="w-2 h-10 gold-gradient rounded-full"></div>
+            <h2 class="text-3xl font-black">محاضرات الفيديو</h2>
+        </div>
+        <div id="video-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+
+        <div class="flex items-center gap-4 mt-20 mb-10">
+            <div class="w-2 h-10 bg-red-600 rounded-full"></div>
+            <h2 class="text-3xl font-black text-red-700">المذكرات و PDF</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 opacity-40">
+            <div class="bg-white p-8 rounded-[35px] text-center border-2 border-dashed">
+                <i class="fas fa-file-pdf text-4xl mb-3 text-red-500"></i>
+                <p class="font-black text-sm text-slate-400">قريباً</p>
             </div>
         </div>
     </main>
 
-    <a href="https://wa.me/201014401852" class="wa-float">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+    <div id="admin-gate" class="fixed inset-0 bg-black/95 z-[9000] hidden flex items-center justify-center p-6">
+        <div class="bg-white rounded-[45px] w-full max-w-xl p-10 relative shadow-2xl">
+            <button onclick="closeAdmin()" class="absolute top-6 left-6 text-slate-300 hover:text-black"><i class="fas fa-times-circle text-3xl"></i></button>
+            <h2 class="text-2xl font-black mb-2">لوحة الأستاذ محمد الشربيني</h2>
+            <p class="text-red-500 font-bold text-xs mb-8 underline">تحذير: هذه المنطقة خاصة بالمدرس فقط</p>
+            <div class="space-y-6">
+                <input type="text" id="v-title" placeholder="عنوان المحاضرة (مثال: الباب الأول - الذرة)" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold">
+                <input type="text" id="v-url" placeholder="رابط الفيديو من يوتيوب" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold">
+                <select id="v-grade" class="w-full p-5 bg-slate-50 rounded-2xl outline-none border-2 border-transparent focus:border-gold font-bold">
+                    <option value="1-mid">أولى إعدادي</option>
+                    <option value="2-mid">تانية إعدادي</option>
+                    <option value="3-mid">تالتة إعدادي</option>
+                    <option value="1-sec">أولى ثانوي</option>
+                    <option value="2-sec">تانية ثانوي</option>
+                    <option value="3-sec">تالتة ثانوي</option>
+                </select>
+                <button onclick="uploadVideo()" class="w-full py-5 gold-gradient text-white rounded-[25px] font-black shadow-xl hover:scale-[1.02] transition">نشر المحاضرة الآن للطلاب</button>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://wa.me/201014401852" class="fixed bottom-6 left-6 w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center text-3xl shadow-2xl z-[500] animate-bounce"><i class="fab fa-whatsapp"></i></a>
 
     <script>
-        // --- تهيئة Firebase ---
-        const firebaseConfig = {
+        const config = {
             apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ",
             authDomain: "sherbiny-academy.firebaseapp.com",
             projectId: "sherbiny-academy",
@@ -302,110 +165,78 @@
             messagingSenderId: "349228281326",
             appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff"
         };
-        
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // متغيرات التحكم
-        let currentSelectedGrade = localStorage.getItem('userGradeCode');
+        let userGrade = localStorage.getItem('grade_code');
 
-        // 1. نظام مراقبة الدخول (Auth Watcher)
         auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-header').classList.remove('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('user-photo').src = user.photoURL;
-                
-                if (!currentSelectedGrade) {
-                    showGradePicker();
-                } else {
-                    saveGrade(currentSelectedGrade, getGradeText(currentSelectedGrade));
-                }
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('user-avatar').src = user.photoURL;
+                document.getElementById('display-name').innerText = user.displayName;
+                if (!userGrade) showGrades(); else setGrade(userGrade, getGradeText(userGrade));
             } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('app-header').classList.add('hidden');
-                document.getElementById('main-content').classList.add('hidden');
+                document.getElementById('auth-screen').style.display = 'flex';
             }
         });
 
-        // 2. وظيفة تسجيل الدخول (مع الخطة البديلة للموبايل)
-        async function startLoginProcess() {
-            const btn = document.getElementById('google-login-btn');
-            const loader = document.getElementById('login-loader');
-            const provider = new firebase.auth.GoogleAuthProvider();
-
-            btn.classList.add('hidden');
-            loader.classList.remove('hidden');
-
-            try {
-                // محاولة أولى بـ Popup
-                await auth.signInWithPopup(provider);
-            } catch (error) {
-                console.log("Popup فشل، تحويل لـ Redirect...");
-                // محاولة ثانية بـ Redirect للموبايلات اللي بتقفل الـ Popups
-                auth.signInWithRedirect(provider);
-            }
+        async function login() {
+            const p = new firebase.auth.GoogleAuthProvider();
+            try { await auth.signInWithPopup(p); } catch(e) { auth.signInWithRedirect(p); }
         }
 
-        // 3. إدارة اختيار الصفوف
-        function showGradePicker() {
-            document.getElementById('grade-picker').style.display = 'flex';
+        function logout() { auth.signOut(); localStorage.removeItem('grade_code'); }
+        function showGrades() { document.getElementById('grade-picker').classList.remove('hidden'); }
+        function toggleMenu() { document.getElementById('user-menu').classList.toggle('hidden'); }
+
+        function setGrade(code, name) {
+            userGrade = code;
+            localStorage.setItem('grade_code', code);
+            document.getElementById('current-grade-text').innerText = name;
+            document.getElementById('grade-picker').classList.add('hidden');
+            fetchData(code);
         }
 
-        function saveGrade(code, text) {
-            currentSelectedGrade = code;
-            localStorage.setItem('userGradeCode', code);
-            document.getElementById('grade-label').innerText = text;
-            document.getElementById('grade-picker').style.display = 'none';
-            loadGradeContent(code);
+        function getGradeText(c) {
+            const m = {'1-mid':'أولى إعدادي','2-mid':'تانية إعدادي','3-mid':'تالتة إعدادي','1-sec':'أولى ثانوي','2-sec':'تانية ثانوي','3-sec':'تالتة ثانوي'};
+            return m[c] || "غير محدد";
         }
 
-        function getGradeText(code) {
-            const map = {
-                '1-mid':'الأول الإعدادي', '2-mid':'الثاني الإعدادي', '3-mid':'الثالث الإعدادي',
-                '1-sec':'الأول الثانوي', '2-sec':'الثاني الثانوي', '3-sec':'الثالث الثانوي'
-            };
-            return map[code] || "عام";
-        }
-
-        // 4. جلب المحتوى من السحابة
-        function loadGradeContent(grade) {
-            const container = document.getElementById('lessons-grid');
+        function fetchData(grade) {
             db.collection("lessons").where("grade", "==", grade).orderBy("createdAt", "desc").onSnapshot(snap => {
-                let html = "";
+                let h = "";
                 snap.forEach(doc => {
-                    const data = doc.data();
-                    html += `
-                        <div class="content-card animate-up">
-                            <div class="h-44 bg-slate-900 rounded-2xl mb-5 flex items-center justify-center relative overflow-hidden">
-                                <i class="fas fa-play-circle text-white/20 text-6xl"></i>
-                                <div class="absolute bottom-3 right-3 bg-[#d4af37] text-white text-[9px] px-3 py-1 rounded-full font-black uppercase">Lesson Online</div>
+                    const d = doc.data();
+                    h += `
+                        <div class="bg-white p-5 rounded-[40px] border border-slate-100 shadow-sm">
+                            <div class="h-48 bg-slate-900 rounded-[30px] mb-5 flex items-center justify-center text-white/10 relative overflow-hidden">
+                                <i class="fas fa-play-circle text-6xl"></i>
+                                <div class="absolute top-4 right-4 bg-gold/20 text-gold text-[9px] px-3 py-1 rounded-full font-black">CHEMISTRY VIDEO</div>
                             </div>
-                            <h3 class="font-black text-lg mb-6 h-12 overflow-hidden text-slate-800">${data.title}</h3>
-                            <button onclick="window.open('${data.url}')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-[#d4af37] transition-all shadow-lg">مشاهدة الحصة</button>
+                            <h4 class="font-black text-slate-800 mb-6 px-2 h-12 overflow-hidden">${d.title}</h4>
+                            <button onclick="window.open('${d.url}')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-gold transition shadow-lg">مشاهدة الحصة الآن</button>
                         </div>
                     `;
                 });
-                container.innerHTML = html || `
-                    <div class="col-span-full py-24 text-center border-4 border-dashed rounded-[50px] opacity-10">
-                        <i class="fas fa-folder-open text-6xl mb-4"></i>
-                        <p class="text-2xl font-black">انتظروا الدروس قريباً</p>
-                    </div>`;
+                document.getElementById('video-list').innerHTML = h || `<p class="col-span-full text-center py-20 font-bold text-slate-300">قريباً جداً محاضرات ${getGradeText(grade)}</p>`;
             });
         }
 
-        // 5. وظائف إضافية
-        function toggleMenu() { document.getElementById('user-popover').classList.toggle('hidden'); }
-        function signOut() { auth.signOut(); localStorage.removeItem('userGradeCode'); }
-        
-        function adminLogin() {
-            const pin = prompt("أدخل كود المدرس الخاص:");
-            if (pin === "123") {
-                // توجيه للوحة التحكم أو فتح المودال
-                alert("أهلاً بك يا مستر. يمكنك الآن رفع الدروس من الكود المخصص للإدارة.");
-            }
+        function checkAdmin() { if(prompt("كود الدخول للمدرس:") === "123") document.getElementById('admin-gate').classList.remove('hidden'); }
+        function closeAdmin() { document.getElementById('admin-gate').classList.add('hidden'); }
+
+        async function uploadVideo() {
+            const title = document.getElementById('v-title').value;
+            const url = document.getElementById('v-url').value;
+            const grade = document.getElementById('v-grade').value;
+            if(!title || !url) return alert("يرجى كتابة العنوان والرابط!");
+            await db.collection("lessons").add({ title, url, grade, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            alert("تم نشر الحصة بنجاح!");
+            closeAdmin();
         }
     </script>
 </body>
