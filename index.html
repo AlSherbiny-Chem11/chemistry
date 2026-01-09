@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الأستاذ محمد الشربيني</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIm1vbmFzYXQtYWxzaGVyYmluaSIsCiAgInNob3J0X25hbWUiOiAi2KfZhNi02LHYqNmK2YbZiiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUzYThhIiwKICAidGhlbWVfY29sb3IiOiAiIzFlM2E4YSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi81ODMzLzU4MzM4OTIucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciIH1dCn0=">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+        .sidebar { transition: all 0.3s; }
+        .card:hover { transform: scale(1.02); }
+        /* تصميم خاص للموبايل لتبدو كتطبيق */
+        @media (max-width: 768px) {
+            .nav-desktop { display: none; }
+            .bottom-nav { display: flex; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-right">
+
+    <div id="install-banner" class="hidden bg-blue-600 text-white p-4 flex justify-between items-center sticky top-0 z-[100]">
+        <span>ثبّت منصة الشربيني على جهازك الآن!</span>
+        <button id="install-button" class="bg-white text-blue-600 px-4 py-1 rounded-lg font-bold">تثبيت</button>
+    </div>
+
+    <div class="min-h-screen flex flex-col md:flex-row">
+        
+        <aside class="hidden md:flex flex-col w-64 bg-slate-900 text-white p-6 space-y-8 h-screen sticky top-0">
+            <div class="text-2xl font-black text-blue-400">أ. محمد الشربيني</div>
+            <nav class="flex flex-col space-y-4">
+                <a href="#" class="hover:bg-slate-800 p-3 rounded-lg"><i class="fas fa-home ml-2"></i> الرئيسية</a>
+                <a href="#" class="hover:bg-slate-800 p-3 rounded-lg"><i class="fas fa-play-circle ml-2"></i> محاضراتي</a>
+                <a href="#" class="hover:bg-slate-800 p-3 rounded-lg"><i class="fas fa-file-invoice ml-2"></i> بنك الأسئلة</a>
+                <a href="#" class="hover:bg-slate-800 p-3 rounded-lg"><i class="fas fa-cog ml-2"></i> الإعدادات</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8">
+            <header class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-800">أهلاً بك يا بطل الكيمياء 🧪</h2>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <span class="bg-yellow-400 text-xs font-bold px-2 py-1 rounded">المستوى: 3 ثانوي</span>
+                    <img src="https://ui-avatars.com/api/?name=Student" class="w-10 h-10 rounded-full border-2 border-blue-500">
+                </div>
+            </header>
+
+            <div class="bg-black w-full aspect-video rounded-3xl shadow-2xl mb-8 flex items-center justify-center relative overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1532187875605-13600d30923e?auto=format&fit=crop&w=1200&q=80" class="absolute w-full h-full object-cover opacity-50">
+                <button class="z-10 bg-white/20 p-6 rounded-full backdrop-blur-md group-hover:scale-110 transition">
+                    <i class="fas fa-play text-white text-4xl"></i>
+                </button>
+                <div class="absolute bottom-6 right-6 text-white text-xl font-bold">المحاضرة القادمة: الكيمياء العضوية</div>
+            </div>
+
+            <h3 class="text-xl font-bold mb-4">حصص الأسبوع</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card bg-white p-4 rounded-2xl shadow-sm border border-gray-200 transition cursor-pointer">
+                    <div class="h-40 bg-blue-50 rounded-xl mb-4 flex items-center justify-center text-blue-500 text-4xl">🔬</div>
+                    <h4 class="font-bold">مقدمة العناصر الانتقالية</h4>
+                    <p class="text-sm text-gray-500">تم الرفع منذ ساعتين</p>
+                </div>
+                <div class="card bg-white p-4 rounded-2xl shadow-sm border border-gray-200 transition cursor-pointer">
+                    <div class="h-40 bg-green-50 rounded-xl mb-4 flex items-center justify-center text-green-500 text-4xl">📝</div>
+                    <h4 class="font-bold">اختبار الباب الأول</h4>
+                    <p class="text-sm text-gray-500">متاح الآن</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="bottom-nav fixed bottom-0 w-full bg-white border-t flex justify-around py-3 md:hidden">
+        <i class="fas fa-home text-blue-600 text-xl"></i>
+        <i class="fas fa-book text-gray-400 text-xl"></i>
+        <i class="fas fa-user text-gray-400 text-xl"></i>
+    </div>
+
+    <script>
+        // كود تفعيل خاصية "التثبيت كبرنامج"
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-banner').style.display = 'flex';
+        });
+
+        document.getElementById('install-button').addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                document.getElementById('install-banner').style.display = 'none';
+            });
+        });
+
+        // حماية المحتوى
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) { if(e.keyCode == 123) return false; }
+    </script>
+</body>
+</html>
