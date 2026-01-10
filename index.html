@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>أكاديمية الشربيني للكيمياء</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -174,10 +174,11 @@
                 let h = "";
                 snap.forEach(doc => {
                     const item = doc.data();
-                    let previewElement = ``; // تم حذف علامة المثلث من هنا
+                    let previewElement = ``; 
                     
                     if(item.url.includes('drive.google.com')) {
-                        previewElement = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-100 transition" style="object-fit:cover" scrolling="no"></iframe>
+                        // هنا شلت المثلث تماماً وخليت الصورة تظهر نضيفة مع تفعيل التمرير
+                        previewElement = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-100 transition" style="object-fit:cover" scrolling="yes"></iframe>
                                          <div class="absolute inset-0 bg-transparent transition"></div>`;
                     }
 
