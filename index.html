@@ -17,50 +17,39 @@
         :root { --gold: #c5a059; --dark: #080c14; --panel: #111827; }
         body { font-family: 'Cairo', sans-serif; background: var(--dark); color: white; min-height: 100vh; overflow-x: hidden; }
         
+        /* لوحة الإدارة - كاملة */
         #admin-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; padding: 20px; overflow-y: auto; }
         .admin-box { background: var(--panel); border: 3px solid var(--gold); width: 100%; max-width: 850px; border-radius: 40px; padding: 40px; margin: auto; box-shadow: 0 0 100px rgba(0,0,0,1); }
 
         .delete-section { background: rgba(239, 68, 68, 0.05); border: 2px dashed rgba(239, 68, 68, 0.2); border-radius: 30px; padding: 30px; margin-top: 40px; }
-        .delete-card { background: #1a1a1a; border-radius: 20px; padding: 20px; border-right: 6px solid #ef4444; transition: 0.3s; }
+        .delete-card { background: #1a1a1a; border-radius: 20px; padding: 20px; border-right: 6px solid #ef4444; transition: 0.3s; margin-bottom: 15px; }
         .delete-card:hover { transform: scale(1.01); background: #221111; }
 
         .btn-gold { background: linear-gradient(135deg, #c5a059 0%, #edd3a1 100%); color: #080c14; font-weight: 900; box-shadow: 0 10px 20px rgba(197, 160, 89, 0.2); }
         .lesson-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 35px; transition: 0.4s; }
         .lesson-card:hover { border-color: var(--gold); transform: translateY(-10px); }
 
-        /* تعديلات المشغل لحل مشكلة التكبير والحركة */
-        #video-player-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 20000; align-items: center; justify-content: center; flex-direction: column; }
+        /* مشغل الفيديو - حل مشكلة الحركة يمين وشمال */
+        #video-player-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 20000; align-items: center; justify-content: center; }
         .video-container { 
             width: 95%; 
             max-width: 1050px; 
-            height: 75vh; 
+            height: 85vh; 
             background: black; 
             border-radius: 25px; 
             border: 2px solid var(--gold); 
-            overflow: auto; /* يسمح بالتمرير عند التكبير */
+            overflow: auto; /* السماح بالتمرير الأفقي والرأسي عند التكبير */
             position: relative; 
-            -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch; 
         }
         
-        #main-video-frame {
-            min-width: 100%;
-            min-height: 100%;
+        #main-video-frame { 
+            width: 100%; 
+            height: 100%; 
+            min-width: 100%; 
         }
 
         #drop-menu { background: var(--panel) !important; border: 2px solid var(--gold); display: none; position: absolute; top: 75px; right: 0; width: 250px; z-index: 9999; border-radius: 25px; }
-        
-        .fullscreen-btn {
-            margin-top: 20px;
-            background: var(--gold);
-            color: black;
-            padding: 10px 25px;
-            border-radius: 15px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -133,16 +122,11 @@
     </div>
 
     <div id="video-player-modal" onclick="closePlayer()">
-        <div class="video-container animate__animated animate__zoomIn" id="zoom-container" onclick="event.stopPropagation()">
+        <div class="video-container animate__animated animate__zoomIn" onclick="event.stopPropagation()">
             <iframe id="main-video-frame" src="" frameborder="0" 
                 allow="autoplay; fullscreen; picture-in-picture;" 
                 allowfullscreen webkitallowfullscreen mozallowfullscreen scrolling="yes"></iframe>
         </div>
-        
-        <button class="fullscreen-btn" onclick="toggleFullScreen()">
-            <i class="fas fa-expand"></i> تكبير بملء الشاشة (العرض)
-        </button>
-
         <button class="absolute top-8 right-8 text-white text-5xl hover:text-red-500 transition" onclick="closePlayer()">&times;</button>
     </div>
 
@@ -154,11 +138,13 @@
     </main>
 
     <script>
+        // التوصيف و Firebase
         const config = { apiKey: "AIzaSyAyIsaApHUjEQWJgGhCom25pUj8Bm9LYyQ", authDomain: "sherbiny-academy.firebaseapp.com", projectId: "sherbiny-academy", storageBucket: "sherbiny-academy.firebasestorage.app", messagingSenderId: "349228281326", appId: "1:349228281326:web:ffbbf1eb5927b50d13f2ff" };
         firebase.initializeApp(config);
         const auth = firebase.auth(), db = firebase.firestore();
         let s_grade = localStorage.getItem('s_grade');
 
+        // إدارة الحالة (الدخول)
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('auth-screen').style.display = 'none';
@@ -170,6 +156,7 @@
             }
         });
 
+        // دوال الحساب والمنيو
         async function login() { const p = new firebase.auth.GoogleAuthProvider(); await auth.signInWithPopup(p); }
         function logout() { auth.signOut(); localStorage.removeItem('s_grade'); location.reload(); }
         function toggleMenu() { const m = document.getElementById('drop-menu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
@@ -191,6 +178,7 @@
             return url;
         }
 
+        // تحميل الدروس
         let unsubscribe = null; 
         function loadLessons(gradeId) {
             const grid = document.getElementById('lesson-grid');
@@ -200,14 +188,14 @@
                 let h = "";
                 snap.forEach(doc => {
                     const item = doc.data();
-                    let previewElement = ``; 
+                    let preview = "";
                     if(item.url.includes('drive.google.com')) {
-                        previewElement = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-100 transition" style="object-fit:cover" scrolling="no"></iframe>
-                                         <div class="absolute inset-0 bg-transparent transition"></div>`;
+                        preview = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-100" style="object-fit:cover" scrolling="no"></iframe>
+                                  <div class="absolute inset-0 bg-transparent"></div>`;
                     }
                     h += `<div class="lesson-card p-8 animate__animated animate__fadeInUp">
                             <div class="h-48 bg-slate-900 rounded-[30px] mb-8 flex items-center justify-center cursor-pointer group overflow-hidden relative" onclick="playVideo('${item.url}')">
-                                ${previewElement}
+                                ${preview}
                             </div>
                             <h4 class="font-black text-lg mb-8 h-12 overflow-hidden text-slate-200 text-center">${item.title}</h4>
                             <button onclick="playVideo('${item.url}')" class="btn-gold w-full py-5 rounded-2xl font-black">مشاهدة الحصة الآن</button>
@@ -217,6 +205,7 @@
             });
         }
 
+        // لوحة التحكم - إضافة وحذف
         async function publish() {
             const t = document.getElementById('v-title').value, u = document.getElementById('v-url').value, g = document.getElementById('v-grade').value, btn = document.getElementById('pub-btn');
             if(!t || !u) return alert("املأ البيانات!");
@@ -230,21 +219,19 @@
 
         function loadAdminLessons() {
             const list = document.getElementById('admin-lessons-list');
-            list.innerHTML = "جاري التحميل...";
             db.collection("lessons").where("grade", "==", s_grade).get().then(snap => {
                 let h = "";
-                if(snap.empty) { list.innerHTML = "القائمة فارغة"; return; }
                 snap.forEach(doc => {
                     h += `<div class="delete-card flex justify-between items-center animate__animated animate__fadeInRight">
-                            <div class="flex flex-col"><span class="text-[10px] text-[#c5a059] font-black">العنوان:</span><span class="font-black text-sm text-white">${doc.data().title}</span></div>
-                            <button onclick="deleteDoc('${doc.id}')" class="bg-red-600/10 text-red-500 border border-red-500/30 px-6 py-3 rounded-xl font-black hover:bg-red-600 hover:text-white transition">حذف الفيديو</button>
+                            <div class="flex flex-col"><span class="font-black text-sm text-white">${doc.data().title}</span></div>
+                            <button onclick="deleteDoc('${doc.id}')" class="bg-red-600/10 text-red-500 border border-red-500/30 px-6 py-3 rounded-xl font-black hover:bg-red-600 hover:text-white transition">حذف</button>
                           </div>`;
                 });
                 list.innerHTML = h;
             });
         }
 
-        async function deleteDoc(id) { if(confirm("حذف الفيديو نهائياً؟")) { await db.collection("lessons").doc(id).delete(); alert("تم الحذف ✅"); loadAdminLessons(); } }
+        async function deleteDoc(id) { if(confirm("حذف الفيديو؟")) { await db.collection("lessons").doc(id).delete(); alert("تم الحذف ✅"); loadAdminLessons(); } }
 
         function checkAdmin() { 
             const pass = prompt("كود الإدارة:"); 
@@ -261,25 +248,8 @@
         }
 
         function closePlayer() { 
-            if (document.fullscreenElement) document.exitFullscreen();
             document.getElementById('main-video-frame').src = ""; 
             document.getElementById('video-player-modal').style.display = 'none'; 
-        }
-
-        // وظيفة ملء الشاشة الجديدة
-        function toggleFullScreen() {
-            const elem = document.getElementById("zoom-container");
-            if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) elem.requestFullscreen();
-                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-                // محاولة تدوير الشاشة برمجياً (تعمل في بعض المتصفحات)
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(e => console.log(e));
-                }
-            } else {
-                document.exitFullscreen();
-            }
         }
     </script>
 </body>
