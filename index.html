@@ -140,7 +140,7 @@
         async function login() { const p = new firebase.auth.GoogleAuthProvider(); await auth.signInWithPopup(p); }
         function logout() { auth.signOut(); localStorage.removeItem('s_grade'); location.reload(); }
         function toggleMenu() { const m = document.getElementById('drop-menu'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-        function openGradePicker() { document.getElementById('grade-picker').classList.remove('hidden'); toggleMenu(); }
+        function openGradePicker() { document.getElementById('grade-picker').classList.remove('hidden'); if(document.getElementById('drop-menu').style.display === 'block') toggleMenu(); }
         
         function selectGrade(id, name) {
             s_grade = id;
@@ -154,14 +154,17 @@
         function formatUrl(url) {
             if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/');
             if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
-            if (url.includes('drive.google.com') && url.includes('/view')) return url.replace('/view', '/preview');
+            if (url.includes('drive.google.com')) return url.replace(/\/view.*|\/edit.*/, '/preview');
             return url;
         }
 
+        let unsubscribe = null; 
+
         function loadLessons(gradeId) {
             const grid = document.getElementById('lesson-grid');
-            // لا يوجد Loader دائري هنا
-            db.collection("lessons").where("grade", "==", gradeId).onSnapshot(snap => {
+            if (unsubscribe) unsubscribe(); 
+            
+            unsubscribe = db.collection("lessons").where("grade", "==", gradeId).onSnapshot(snap => {
                 if(snap.empty) {
                     grid.innerHTML = '<div class="col-span-full text-center py-32 opacity-20 text-2xl font-black">لا يوجد دروس حالياً</div>';
                     return;
@@ -212,7 +215,18 @@
             if(confirm("حذف الفيديو نهائياً؟")) { await db.collection("lessons").doc(id).delete(); alert("تم الحذف ✅"); loadAdminLessons(); }
         }
 
-        function checkAdmin() { if(prompt("كود الإدارة:") === "123") { document.getElementById('admin-modal').style.display = 'flex'; loadAdminLessons(); } }
+        // التعديل هنا: استخدام التشفير لـ Sherbiny@2026
+        function checkAdmin() { 
+            const pass = prompt("كود الإدارة:"); 
+            // الشفرة الناتجة عن Sherbiny@2026 هي U2hlcmJpbnlAMjAyNg==
+            if(btoa(pass) === "U2hlcmJpbnlAMjAyNg==") { 
+                document.getElementById('admin-modal').style.display = 'flex'; 
+                loadAdminLessons(); 
+            } else {
+                alert("الكود غير صحيح!");
+            }
+        }
+
         function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
         function playVideo(url) { document.getElementById('main-video-frame').src = formatUrl(url); document.getElementById('video-player-modal').style.display = 'flex'; }
         function closePlayer() { document.getElementById('main-video-frame').src = ""; document.getElementById('video-player-modal').style.display = 'none'; }
