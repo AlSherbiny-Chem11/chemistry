@@ -155,7 +155,6 @@
             if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/') + "?rel=0&showinfo=0&controls=1";
             if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/') + "?rel=0&showinfo=0&controls=1";
             if (url.includes('drive.google.com')) {
-                // نستخدم preview لإظهار أدوات التكبير والملء
                 return url.replace(/\/view.*|\/edit.*|\/preview.*/, '/preview');
             }
             return url;
@@ -175,12 +174,11 @@
                 let h = "";
                 snap.forEach(doc => {
                     const item = doc.data();
-                    let previewElement = `<i class="fas fa-play text-5xl text-[#c5a059] opacity-40 group-hover:opacity-100 group-hover:scale-125 transition"></i>`;
+                    let previewElement = ``; // تم حذف علامة المثلث من هنا
                     
                     if(item.url.includes('drive.google.com')) {
-                        previewElement = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-60 group-hover:opacity-100 transition" style="object-fit:cover" scrolling="no"></iframe>
-                                         <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition"></div>
-                                         <i class="fas fa-play-circle text-5xl text-white absolute opacity-80 shadow-2xl"></i>`;
+                        previewElement = `<iframe src="${formatUrl(item.url)}" class="w-full h-full pointer-events-none border-none opacity-100 transition" style="object-fit:cover" scrolling="no"></iframe>
+                                         <div class="absolute inset-0 bg-transparent transition"></div>`;
                     }
 
                     h += `<div class="lesson-card p-8 animate__animated animate__fadeInUp">
