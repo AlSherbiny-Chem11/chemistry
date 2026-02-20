@@ -668,10 +668,19 @@ window.addEventListener('touchmove', (e) => {
     const touchMove = e.touches[0].pageY;
     const distance = touchMove - touchStart;
 
-    // لو المستخدم بيسحب لتحت وهو في أول الصفحة فوق خالص
-    if (window.scrollY === 0 && distance > 100) {
+    // الشرط الذهبي:
+    // 1. لازم نكون في أول الصفحة (window.scrollY === 0)
+    // 2. لازم لوحة الإدارة تكون مقفولة (display !== 'flex') عشان ما تضايقكش وأنت بتمسح
+    // 3. لازم السحبة تكون طويلة كفاية (distance > 150)
+    
+    const isAdminOpen = document.getElementById('admin-modal').style.display === 'flex';
+
+    if (!isAdminOpen && window.scrollY === 0 && distance > 150) {
         if (indicator) {
-            indicator.style.top = '20px'; // إظهار المؤشر
+            indicator.style.top = '20px'; 
+            setTimeout(() => {
+                location.reload();
+            }, 800);
         }
     }
 }, {passive: true});
