@@ -275,23 +275,27 @@ function loadAdminLessons() {
             // لو "صف الدرس" بيساوي "الصف اللي أنا فاتحه دلوقتي" بس هو اللي يظهر
             if (data.grade === s_grade) {
                 count++;
-                h += `
-                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 animate__animated animate__fadeInRight">
-                    <div class="flex flex-col">
-                        <span class="font-black text-sm text-white">${data.title}</span>
-                        <span class="text-[10px] text-[#c5a059] italic">المعرف: ${doc.id.substring(0,5)}...</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="prepareEdit('${doc.id}', '${data.title}', '${data.url}', '${data.grade}')" 
-                                class="bg-blue-600/10 text-blue-500 border border-blue-500/30 px-3 py-2 rounded-xl font-black hover:bg-blue-600 hover:text-white transition text-[11px]">
-                            تعديل
-                        </button>
-                        <button onclick="deleteDoc('${doc.id}')" 
-                                class="bg-red-600/10 text-red-500 border border-red-500/30 px-3 py-2 rounded-xl font-black hover:bg-red-600 hover:text-white transition text-[11px]">
-                            حذف
-                        </button>
-                    </div>
-                </div>`;
+              h += `
+<div class="flex justify-between items-center bg-white/5 border border-white/10 p-2 mb-2 rounded-lg gap-2">
+    
+    <div class="flex-1 overflow-hidden">
+        <p class="text-white text-xs sm:text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis m-0">
+            ${data.title}
+        </p>
+    </div>
+
+    <div class="flex gap-1.5 flex-shrink-0">
+        <button onclick="prepareEdit('${doc.id}', '${data.title}', '${data.url}', '${data.grade}')" 
+                class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded text-[11px] font-bold whitespace-nowrap hover:bg-blue-600 hover:text-white transition">
+            تعديل
+        </button>
+        <button onclick="deleteDoc('${doc.id}')" 
+                class="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded text-[11px] font-bold whitespace-nowrap hover:bg-red-600 hover:text-white transition">
+            حذف
+        </button>
+    </div>
+</div>
+`;
             }
         });
 
@@ -405,56 +409,46 @@ async function addUser() {
 
 function loadUsersList() {
     const list = document.getElementById('admin-users-list');
-    
-    db.collection("users_access").onSnapshot(snap => {
-        let h = "";
-        const currentUserEmail = auth.currentUser.email.toLowerCase();
-        
-        // جلب رتبة الشخص اللي فاتح اللوحة حالياً
-        db.collection("users_access").doc(currentUserEmail).get().then(myDoc => {
-            const myRole = myDoc.data()?.role;
+    const currentUserEmail = auth.currentUser.email.toLowerCase();
 
+    // 1. نجيب رتبة الشخص اللي فاتح اللوحة "مرة واحدة" الأول
+    db.collection("users_access").doc(currentUserEmail).get().then(myDoc => {
+        const myRole = myDoc.data()?.role;
+
+        // 2. بعد ما عرفنا رتبتي، نبدأ نراقب قائمة المستخدمين
+        db.collection("users_access").onSnapshot(snap => {
+            let h = "";
+            
             snap.forEach(doc => {
                 const data = doc.data();
                 const targetEmail = doc.id.toLowerCase();
                 const targetRole = data.role;
+                
                 const isTargetMaster = targetRole === 'master';
                 const isTargetTeacher = targetRole === 'teacher';
                 const isTargetStudent = targetRole === 'student';
                 const isTargetSelf = targetEmail === currentUserEmail;
 
-             // --- 1. تحديد نص وشكل الرتبة (Badge) ---
-                let badgeText = "";
-                let badgeStyle = "";
+                // تحديد شكل الرتبة (Badge)
+                let badgeText = isTargetMaster ? "👑 المشرف العام" : isTargetTeacher ? "🛡️ مدرس مساعد" : "🎓 طالب";
+                let badgeStyle = isTargetMaster ? "master-badge" : isTargetTeacher ? "text-yellow-500 font-bold" : "text-blue-400";
 
-                if (isTargetMaster) {
-                    badgeText = "👑 المشرف العام (المستر)";
-                    badgeStyle = "master-badge text-[9px]"; // الكلاس ده ضيفناه في الـ CSS
-                } else if (isTargetTeacher) {
-                    badgeText = "🛡️ مدرس مساعد";
-                    badgeStyle = "text-yellow-500 font-bold";
-                } else {
-                    badgeText = "🎓 طالب ";
-                    badgeStyle = "text-blue-400";
-                }
-
-                // --- 2. بناء شكل الكارت في القائمة ---
                 h += `
                 <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 mb-2 animate__animated animate__fadeInUp">
                     <div class="flex flex-col text-right">
-                        <span class="text-white text-sm font-bold">${doc.id}</span>
-                        <span class="${badgeStyle}">${badgeText}</span>
+                        <span class="text-white text-[12px] font-bold">${doc.id}</span>
+                        <span class="${badgeStyle} text-[10px]">${badgeText}</span>
                     </div>
                     <div class="flex items-center gap-2">
                         
-                        ${ (myRole === 'master') || (myRole === 'teacher' && isTargetStudent) ? `
+                        ${ (myRole === 'master' || (myRole === 'teacher' && isTargetStudent)) ? `
                             <button onclick="prepareUserEdit('${doc.id}', '${targetRole}')" 
                                     class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-md hover:bg-blue-500 hover:text-white transition font-bold">
                                 تعديل
                             </button>` : '' 
                         }
 
-                        ${ ((myRole === 'master' && !isTargetSelf) || (myRole === 'teacher' && isTargetStudent)) ? `
+                        ${ ( (myRole === 'master' && !isTargetSelf) || (myRole === 'teacher' && isTargetStudent) ) ? `
                             <button onclick="deleteUser('${doc.id}')" class="text-red-500 p-2 hover:bg-red-500/10 rounded-full transition">
                                 <i class="fas fa-trash-alt"></i>
                             </button>` : '' 
