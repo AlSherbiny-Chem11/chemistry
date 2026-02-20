@@ -97,7 +97,7 @@ async function login() {
         await auth.signInWithPopup(p); 
     } catch (error) {
         console.error("Login Error:", error);
-        showToast("حدثت مشكلة في الاتصال بـ Firebase");
+        showToast("حدثت مشكلة في الاتصال بـ الانترنت ", "error");
     }
 }
 
@@ -517,51 +517,22 @@ function closeAdmin() {
     resetAdminForm(); // عشان لو فتحتها تاني متلاقيش بيانات التعديل القديمة
 }
 
-// 1. تعديل دالة تشغيل الفيديو لقلب الشاشة
-async function playVideo(url) { 
-    const modal = document.getElementById('video-player-modal');
+function playVideo(url) { 
     const frame = document.getElementById('main-video-frame');
-    
+    // بنخلي الرابط يسمح بالتكبير ويدي صلاحيات كاملة للإطار
     frame.src = formatUrl(url).replace("controls=0", "controls=1"); 
-    modal.style.display = 'flex'; 
-
-    // محاولة الدخول في وضع ملء الشاشة وقلب الموبايل عرض
-    try {
-        if (modal.requestFullscreen) {
-            await modal.requestFullscreen();
-        } else if (modal.webkitRequestFullscreen) { /* Safari */
-            await modal.webkitRequestFullscreen();
-        }
-
-        // قفل الشاشة على الوضع العرضي (Landscape)
-        if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock ignored"));
-        }
-    } catch (err) {
-        console.log("Auto-rotate error:", err);
-    }
+    document.getElementById('video-player-modal').style.display = 'flex'; 
 }
 
-// 2. تعديل دالة الإغلاق لفك قفل الشاشة ورجوعها طول
 function closePlayer() { 
     document.getElementById('main-video-frame').src = ""; 
     document.getElementById('video-player-modal').style.display = 'none'; 
 
-    // الخروج من وضع ملء الشاشة
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        }
-    }
-
-    // فك قفل اتجاه الشاشة ليعود للوضع الطبيعي
+    // لو الطالب خرج وما فكش قفل الشاشة، إحنا بنفكه هنا
     if (screen.orientation && screen.orientation.unlock) {
         screen.orientation.unlock();
     }
 }
-
 
 function filterVideos() {
     // 1. نجيب الكلمة اللي الطالب كتبها ونحولها لحروف صغيرة
@@ -727,5 +698,20 @@ window.addEventListener('touchend', () => {
         setTimeout(() => {
             location.reload(); // إعادة تحميل الصفحة
         }, 1000);
+    }
+});
+
+// مراقب التكبير: أول ما الشاشة تكبر (سواء بزرار درايف أو غيره) اقلب الموبايل
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        // الطالب داس تكبير -> اقلب عرض
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+    } else {
+        // الطالب صغر الفيديو -> ارجع طول
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
     }
 });
