@@ -516,16 +516,52 @@ function closeAdmin() {
     document.getElementById('admin-modal').style.display = 'none'; 
     resetAdminForm(); // عشان لو فتحتها تاني متلاقيش بيانات التعديل القديمة
 }
-function playVideo(url) { 
+
+// 1. تعديل دالة تشغيل الفيديو لقلب الشاشة
+async function playVideo(url) { 
+    const modal = document.getElementById('video-player-modal');
     const frame = document.getElementById('main-video-frame');
-    frame.src = formatUrl(url).replace("controls=0", "controls=1"); // نعيد أزرار التحكم في شاشة العرض
-    document.getElementById('video-player-modal').style.display = 'flex'; 
+    
+    frame.src = formatUrl(url).replace("controls=0", "controls=1"); 
+    modal.style.display = 'flex'; 
+
+    // محاولة الدخول في وضع ملء الشاشة وقلب الموبايل عرض
+    try {
+        if (modal.requestFullscreen) {
+            await modal.requestFullscreen();
+        } else if (modal.webkitRequestFullscreen) { /* Safari */
+            await modal.webkitRequestFullscreen();
+        }
+
+        // قفل الشاشة على الوضع العرضي (Landscape)
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape').catch(e => console.log("Orientation lock ignored"));
+        }
+    } catch (err) {
+        console.log("Auto-rotate error:", err);
+    }
 }
 
+// 2. تعديل دالة الإغلاق لفك قفل الشاشة ورجوعها طول
 function closePlayer() { 
     document.getElementById('main-video-frame').src = ""; 
     document.getElementById('video-player-modal').style.display = 'none'; 
+
+    // الخروج من وضع ملء الشاشة
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+
+    // فك قفل اتجاه الشاشة ليعود للوضع الطبيعي
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+    }
 }
+
 
 function filterVideos() {
     // 1. نجيب الكلمة اللي الطالب كتبها ونحولها لحروف صغيرة
