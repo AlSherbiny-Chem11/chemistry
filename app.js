@@ -1875,33 +1875,56 @@ async function submitComment() {
     if (!text) return;
     const user = auth.currentUser;
     if (!user || !currentLessonId) return;
-    const displayName = await getMyDisplayName();
-    input.value = '';
 
-    if (replyingTo) {
-        const targetCommentId = replyingTo.commentId;
-        const replyToName = replyingTo.displayName || '';
-        const replyToText = replyingTo.replyToText || '';
-        cancelReply();
-        await db.collection('comments').doc(currentLessonId)
-            .collection('messages').doc(targetCommentId)
-            .collection('replies').add({
-                text, displayName,
-                email: user.email.toLowerCase(),
-                avatar: user.photoURL || '',
-                replyToName,
-                replyToText,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        await forceReloadComments(currentLessonId);
-    } else {
-        await db.collection('comments').doc(currentLessonId)
-            .collection('messages').add({
-                text, displayName,
-                email: user.email.toLowerCase(),
-                avatar: user.photoURL || '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+    // زرار النشر
+    const btn = document.querySelector('button[onclick="submitComment()"]');
+    const originalHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النشر...';
+        btn.style.opacity = '0.7';
+    }
+
+    try {
+        const displayName = await getMyDisplayName();
+        input.value = '';
+
+        if (replyingTo) {
+            const targetCommentId = replyingTo.commentId;
+            const replyToName = replyingTo.displayName || '';
+            const replyToText = replyingTo.replyToText || '';
+            cancelReply();
+            await db.collection('comments').doc(currentLessonId)
+                .collection('messages').doc(targetCommentId)
+                .collection('replies').add({
+                    text, displayName,
+                    email: user.email.toLowerCase(),
+                    avatar: user.photoURL || '',
+                    replyToName,
+                    replyToText,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            showToast('تم نشر ردك ✅');
+            await forceReloadComments(currentLessonId);
+        } else {
+            await db.collection('comments').doc(currentLessonId)
+                .collection('messages').add({
+                    text, displayName,
+                    email: user.email.toLowerCase(),
+                    avatar: user.photoURL || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            showToast('تم نشر تعليقك ✅');
+        }
+    } catch (e) {
+        showToast('حدث خطأ أثناء النشر', 'error');
+        console.error(e);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+            btn.style.opacity = '';
+        }
     }
 }
 

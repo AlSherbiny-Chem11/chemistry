@@ -143,21 +143,52 @@
                 </div>
             </div>
 
-            <div id="drop-menu" class="hidden absolute right-0 mt-2 w-44 bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-2 z-[5000] animate__animated animate__fadeInUp" style="display:none; flex-direction:column;">
-                <button onclick="openProfile()" class="w-full text-right p-3 hover:bg-white/5 rounded-xl text-[11px] font-black flex items-center gap-3 text-white transition">
-                    <i class="fas fa-user-circle text-[#c5a059]"></i> ملفي الشخصي
+            <div id="drop-menu" style="display:none; flex-direction:column;">
+
+                <!-- رأس القائمة -->
+                <div class="dm-header">
+                    <span class="dm-header-dot"></span>
+                    <span class="dm-header-text">القائمة</span>
+                </div>
+
+                <!-- ملفي الشخصي -->
+                <button onclick="openProfile()" class="dm-btn">
+                    <span class="dm-icon-wrap dm-icon-gold">
+                        <i class="fas fa-user-circle"></i>
+                    </span>
+                    <span class="dm-label">ملفي الشخصي</span>
+                    <i class="fas fa-angle-left dm-chevron"></i>
                 </button>
-                <!-- زرار تغيير الصف - يُخفى للطلاب ذوي الصف الواحد بـ JS -->
-                <button onclick="openGradePicker(); toggleMenu();" class="change-grade-btn w-full text-right p-3 hover:bg-white/5 rounded-xl text-[11px] font-black flex items-center gap-3 text-white transition">
-                    <i class="fas fa-sync text-[#c5a059]"></i> تغيير الصف
+
+                <!-- تغيير الصف - يُخفى للطلاب ذوي الصف الواحد بـ JS -->
+                <button onclick="openGradePicker(); toggleMenu();" class="dm-btn change-grade-btn">
+                    <span class="dm-icon-wrap dm-icon-gold">
+                        <i class="fas fa-layer-group"></i>
+                    </span>
+                    <span class="dm-label">تغيير الصف</span>
+                    <i class="fas fa-angle-left dm-chevron"></i>
                 </button>
-                <button onclick="checkAdmin()" class="w-full text-right p-3 hover:bg-red-500/10 rounded-xl text-[11px] font-black text-red-400 flex items-center gap-3 transition">
-                    <i class="fas fa-user-shield"></i> لوحة المدرس
+
+                <!-- لوحة المدرس - تُخفى للطلاب بـ JS -->
+                <button onclick="checkAdmin()" class="dm-btn dm-btn-admin">
+                    <span class="dm-icon-wrap dm-icon-red">
+                        <i class="fas fa-shield-alt"></i>
+                    </span>
+                    <span class="dm-label">لوحة المدرس</span>
+                    <i class="fas fa-angle-left dm-chevron"></i>
                 </button>
-                <div class="border-t border-white/5 my-1"></div>
-                <button onclick="logout()" class="w-full text-right p-3 hover:bg-white/5 rounded-xl text-[11px] font-black text-gray-400 flex items-center gap-3 transition">
-                    <i class="fas fa-power-off text-red-500"></i> خروج
+
+                <!-- فاصل -->
+                <div class="dm-sep"></div>
+
+                <!-- تسجيل الخروج -->
+                <button onclick="logout()" class="dm-btn dm-btn-logout">
+                    <span class="dm-icon-wrap dm-icon-red-faint">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </span>
+                    <span class="dm-label">تسجيل الخروج</span>
                 </button>
+
             </div>
         </div>
 
