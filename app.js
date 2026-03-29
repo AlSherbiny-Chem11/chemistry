@@ -216,7 +216,16 @@ function toggleMenu() {
     }
 }
 
-// ============================================
+// إغلاق القائمة المنسدلة عند الضغط خارجها
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('drop-menu');
+    if (!menu || menu.style.display !== 'flex') return;
+    const trigger = document.querySelector('[onclick="toggleMenu()"]');
+    if ((trigger && trigger.contains(e.target)) || menu.contains(e.target)) return;
+    menu.style.display = 'none';
+});
+
+
 //  اختيار الصف
 // ============================================
 function openGradePicker(allowedGrades = null) {
@@ -512,10 +521,7 @@ function createCard(item, type) {
             markWatched(lessonId);
         };
     } else {
-        card.onclick = () => {
-            openImageViewer(item.url, lessonId, item.title);
-            markWatched(lessonId); // ✅ نفس منطق الفيديو — تسجيل المشاهدة عند فتح الصورة
-        };
+        card.onclick = () => openImageViewer(item.url, lessonId, item.title);
     }
 
     return card;
