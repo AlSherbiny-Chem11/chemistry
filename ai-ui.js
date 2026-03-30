@@ -461,6 +461,7 @@ async function aiShowMasterAnalytics() {
     aiHideChat();
     aiHideMemoryPanel();
     panel.style.display = 'flex';
+    panel.onclick = (e) => e.stopPropagation();
 
     panel.innerHTML = `<div class="ai-analytics-loading">
         <div class="ai-analytics-spinner"></div>
@@ -475,7 +476,8 @@ async function aiShowMasterAnalytics() {
             if (d.role !== 'master') students.push({ email: doc.id, ...d });
         });
 
-        panel.innerHTML = `
+        panel.onclick = (e) => e.stopPropagation();
+    panel.innerHTML = `
         <div class="ai-analytics-header">
             <button class="ai-analytics-back" onclick="aiHideAnalytics()">
                 <i class="fas fa-arrow-right"></i> رجوع
@@ -513,7 +515,7 @@ function aiStudentCardHTML(s) {
         ? `<img src="${escHtml(s.photoURL)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none'">`
         : `<div class="ai-avatar-placeholder">${initials}</div>`;
 
-    return `<div class="ai-student-card" onclick="aiLoadStudentReport('${escHtml(s.email)}')" data-name="${escHtml(name)}" data-email="${escHtml(s.email)}">
+    return `<div class="ai-student-card" onclick="event.stopPropagation(); aiLoadStudentReport('${escHtml(s.email)}')" data-name="${escHtml(name)}" data-email="${escHtml(s.email)}">
         <div class="ai-student-avatar">${avatarHtml}</div>
         <div class="ai-student-info">
             <div class="ai-student-name">${escHtml(name)}</div>
@@ -540,6 +542,7 @@ async function aiLoadStudentReport(email) {
     const panel = document.getElementById('ai-analytics-panel');
     if (!panel) return;
 
+    panel.onclick = (e) => e.stopPropagation();
     panel.innerHTML = `<div class="ai-analytics-loading">
         <div class="ai-analytics-spinner"></div>
         <p>جاري تحميل بيانات الطالب...</p>
@@ -896,6 +899,7 @@ function aiShowMemoryPanel() {
     const panel = document.getElementById('ai-memory-panel');
     if (!panel) return;
     panel.style.display = 'flex';
+    panel.onclick = (e) => e.stopPropagation();
     aiRenderMemoryPanel();
 }
 
@@ -995,8 +999,29 @@ let aiIsRecording       = false;
 let aiPreRecordingText  = ''; // ✅ يحفظ النص الموجود قبل التسجيل
 
 function aiToggleVoice() {
+    // تحقق من دعم API
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        aiShowToast('المتصفح مش بيدعم التسجيل الصوتي 🎤', 'error');
+        aiShowToast('متصفحك مش بيدعم التسجيل الصوتي — جرّب Chrome 🎤', 'error');
+        return;
+    }
+    // على الموبايل: نطلب إذن الميكروفون صراحةً أولاً
+    if (!aiIsRecording && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                // وقفنا الـ stream الفوري — المطلوب فقط تأكيد الإذن
+                stream.getTracks().forEach(t => t.stop());
+                aiStartVoice();
+            })
+            .catch(err => {
+                console.error('[AI Mic]', err.name, err.message);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    aiShowToast('مسموحتش بالميكروفون — افتح الإعدادات وامنح الإذن 🎤', 'error');
+                } else if (err.name === 'NotFoundError') {
+                    aiShowToast('مفيش ميكروفون متاح على الجهاز 🎤', 'error');
+                } else {
+                    aiShowToast('خطأ في الوصول للميكروفون: ' + err.name, 'error');
+                }
+            });
         return;
     }
     aiIsRecording ? aiStopVoice() : aiStartVoice();
@@ -1034,13 +1059,28 @@ function aiStartVoice() {
     };
 
     aiSpeechRecognition.onerror = (e) => {
-        if (e.error !== 'no-speech') aiShowToast('خطأ في التسجيل ⚠️', 'error');
+        console.error('[AI Voice] error:', e.error);
+        const msgs = {
+            'not-allowed':    'لم يُمنح إذن الميكروفون ⚠️',
+            'network':        'خطأ في الشبكة أثناء التسجيل ⚠️',
+            'no-speech':      null, // صامت — مش خطأ
+            'audio-capture':  'تعذر الوصول للميكروفون ⚠️',
+            'service-not-allowed': 'الخدمة غير مسموح بها — تأكد من HTTPS ⚠️'
+        };
+        const msg = msgs[e.error];
+        if (msg) aiShowToast(msg, 'error');
         aiStopVoice();
     };
 
     aiSpeechRecognition.onend = () => aiStopVoice();
 
-    try { aiSpeechRecognition.start(); } catch(e) {}
+    try {
+        aiSpeechRecognition.start();
+    } catch(e) {
+        console.error('[AI Voice] start error:', e);
+        aiShowToast('تعذّر بدء التسجيل — تأكد من HTTPS ⚠️', 'error');
+        aiStopVoice();
+    }
 }
 
 function aiStopVoice() {

@@ -1015,6 +1015,7 @@ async function deleteUser(email) {
                 <li>📚 سجل المشاهدات والإنجازات</li>
                 <li>⭐ جميع التقييمات التي قيّمها</li>
                 <li>💬 جميع تعليقاته وردوده</li>
+                <li>🤖 جميع محادثات الذكاء الاصطناعي وذاكرته</li>
             </ul>
             <p style="margin:12px 0 0;padding:8px 10px;background:rgba(239,68,68,0.1);border-radius:10px;border:1px solid rgba(239,68,68,0.2);color:#fca5a5;font-size:12px;">
                 <b>${email}</b><br>لا يمكن التراجع عن هذه العملية
@@ -1100,10 +1101,26 @@ async function deleteUser(email) {
 
         await batch.commit();
 
+        // ---- 5. حذف بيانات AI (chats + memories) ----
+        // هذه عمليات منفصلة لأنها خارج نطاق الـ batch الأساسي
+        try {
+            await db.collection("ai_chats").doc(emailLower).delete();
+        } catch(aiE) { console.warn("ai_chats delete skip:", aiE.message); }
+        try {
+            await db.collection("ai_memories").doc(emailLower).delete();
+        } catch(aiE) { console.warn("ai_memories delete skip:", aiE.message); }
+
+        // ---- 6. حذف بيانات AI من localStorage (كل الـ keys المحتملة) ----
+        // نمط المفتاح: ai_chats_v2_{email} + ai_chats_{email} (للتوافق مع النسخ القديمة)
+        try {
+            localStorage.removeItem(`ai_chats_v2_${emailLower}`);
+            localStorage.removeItem(`ai_chats_${emailLower}`);
+        } catch(lsE) { /* localStorage قد لا يكون متاحاً */ }
+
         Swal.fire({
             target: document.getElementById('admin-modal'),
             title: 'تم الحذف ✅',
-            text: 'تم حذف جميع بيانات المستخدم بنجاح',
+            text: 'تم حذف جميع بيانات المستخدم (بما فيها محادثات AI)',
             icon: 'success',
             timer: 2500,
             showConfirmButton: false,
