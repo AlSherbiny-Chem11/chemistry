@@ -17,6 +17,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ai-styles.css">
     <style>
         div.swal2-container { z-index: 999999 !important; }
         div.swal2-container.swal2-top { z-index: 999999 !important; }
@@ -157,6 +158,15 @@
                         <i class="fas fa-user-circle"></i>
                     </span>
                     <span class="dm-label">ملفي الشخصي</span>
+                    <i class="fas fa-angle-left dm-chevron"></i>
+                </button>
+
+                <!-- المساعد الذكي -->
+                <button onclick="openAIModal()" class="dm-btn">
+                    <span class="dm-icon-wrap" style="background:rgba(99,102,241,0.18); color:#818cf8; width:32px; height:32px; font-size:15px; border-radius:10px;">
+                        <i class="fas fa-robot"></i>
+                    </span>
+                    <span class="dm-label">المساعد الذكي</span>
                     <i class="fas fa-angle-left dm-chevron"></i>
                 </button>
 
@@ -636,5 +646,100 @@
 <script src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="app.js"></script>
+<script src="ai-config.js"></script>
+<script src="ai-logic.js"></script>
+<script src="ai-ui.js"></script>
+
+<!-- ====== AI Modal — المساعد الذكي ====== -->
+<div id="ai-modal">
+
+    <!-- Header -->
+    <div id="ai-full-wrap" style="display:flex;flex-direction:column;width:100%;height:100%;">
+        <div id="ai-header">
+            <div class="ai-header-brand">
+                <div class="ai-header-logo"><i class="fas fa-robot"></i></div>
+                <div class="ai-header-titles">
+                    <span class="ai-header-title">المساعد الذكي</span>
+                    <span class="ai-header-sub">El Sherbini Academy AI</span>
+                </div>
+            </div>
+            <div style="display:flex;gap:7px;align-items:center;">
+                <button class="ai-icon-btn" id="ai-sidebar-toggle" onclick="aiToggleSidebar()" title="المحادثات">
+                    <i class="fas fa-comments"></i>
+                </button>
+                <button class="ai-icon-btn ai-close-btn" onclick="closeAIModal()" title="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div id="ai-body">
+
+            <!-- Sidebar -->
+            <aside id="ai-sidebar">
+                <div class="ai-sidebar-head">
+                    <div class="ai-sidebar-label">المحادثات</div>
+                    <button id="ai-new-chat-btn" onclick="aiNewChat()">
+                        <i class="fas fa-plus"></i> محادثة جديدة
+                    </button>
+                    <div>
+                        <div class="ai-quota-row">
+                            <span class="ai-quota-label">الاستخدام</span>
+                            <span class="ai-quota-val" id="ai-quota-text">0 / 5</span>
+                        </div>
+                        <div class="ai-quota-track">
+                            <div class="ai-quota-fill" id="ai-quota-fill" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <button id="ai-master-btn" onclick="aiShowMasterAnalytics()">
+                        <i class="fas fa-chart-bar"></i> تحليل الطلاب
+                    </button>
+                    <button id="ai-memory-btn" onclick="aiShowMemoryPanel()">
+                        <i class="fas fa-brain"></i> <span>ذاكرتي</span>
+                        <span class="ai-memory-count" id="ai-memory-count">0/20</span>
+                    </button>
+                </div>
+                <div id="ai-chat-list"></div>
+            </aside>
+
+            <!-- Sidebar overlay (mobile) -->
+            <div id="ai-sidebar-overlay" onclick="aiToggleSidebar()"></div>
+
+            <!-- Chat area -->
+            <div id="ai-chat-area">
+                <div id="ai-messages-wrap"></div>
+
+                <!-- Input -->
+                <div id="ai-input-bar">
+                    <div id="ai-input-wrap">
+                        <textarea id="ai-msg-input"
+                            placeholder="اسألني أي حاجة في الدروس..."
+                            rows="1"
+                            onkeydown="aiHandleKey(event)"
+                            oninput="aiAutoResize(this)"></textarea>
+                        <button id="ai-mic-btn" onclick="aiToggleVoice()" title="تسجيل صوتي">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="ai-send-btn" onclick="aiSendMessage()">
+                            <i class="fas fa-paper-plane" style="transform:scaleX(-1)"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics panel (master only) -->
+            <div id="ai-analytics-panel"></div>
+
+            <!-- Memory panel -->
+            <div id="ai-memory-panel"></div>
+
+        </div><!-- end ai-body -->
+    </div><!-- end ai-full-wrap -->
+</div><!-- end ai-modal -->
+
+<!-- AI Toast -->
+<div class="ai-toast" id="ai-toast"></div>
+
 </body>
 </html>
