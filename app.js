@@ -525,7 +525,10 @@ function createCard(item, type) {
             markWatched(lessonId);
         };
     } else {
-        card.onclick = () => openImageViewer(item.url, lessonId, item.title);
+        card.onclick = () => {
+            openImageViewer(item.url, lessonId, item.title);
+            markWatched(lessonId);
+        };
     }
 
     return card;
