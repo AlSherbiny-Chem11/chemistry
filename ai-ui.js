@@ -165,10 +165,9 @@ function aiNewChat() {
     aiRenderSidebar();
     aiRenderMessages();
     aiHideAnalytics();
-    if (window.innerWidth <= 640) {
-        document.getElementById('ai-sidebar')?.classList.remove('ai-sidebar-open');
-        document.getElementById('ai-sidebar-overlay')?.classList.remove('show');
-    }
+    // إغلاق sidebar تلقائياً دايماً عند محادثة جديدة
+    document.getElementById('ai-sidebar')?.classList.remove('ai-sidebar-open');
+    document.getElementById('ai-sidebar-overlay')?.classList.remove('show');
     document.getElementById('ai-msg-input')?.focus();
 }
 
@@ -345,8 +344,14 @@ async function aiSendMessage() {
         const rawReply = await aiCallAPI(aiActiveChat.messages);
         aiHideTyping();
 
+        // ── استخراج markers قبل الحفظ ──
+        const hasTF     = /\[TRUE_FALSE\]/.test(rawReply);
         const saveMatch = rawReply.match(/\[SAVE_MEMORY:\s*(.+?)\]/);
-        let cleanReply  = rawReply.replace(/\[SAVE_MEMORY:[^\]]*\]/g, '').trim();
+        // ننظف الرد من الـ markers قبل الحفظ والعرض
+        let cleanReply  = rawReply
+            .replace(/\[SAVE_MEMORY:[^\]]*\]/g, '')
+            .replace(/\[TRUE_FALSE\]/g, '')
+            .trim();
 
         if (saveMatch) {
             const toSave = saveMatch[1].trim();
@@ -362,7 +367,7 @@ async function aiSendMessage() {
         }
 
         const aiMsg = aiAddMessageToChat(aiActiveChat.id, 'assistant', cleanReply);
-        await aiAppendMsgAnimated(aiMsg);
+        await aiAppendMsgAnimated(aiMsg, hasTF);
         aiRenderSidebar();
 
     } catch (err) {
@@ -486,6 +491,10 @@ async function aiShowMasterAnalytics() {
         aiShowToast('هذه الخاصية للمشرف العام فقط 🔒', 'error');
         return;
     }
+
+    // إغلاق sidebar تلقائياً
+    document.getElementById('ai-sidebar')?.classList.remove('ai-sidebar-open');
+    document.getElementById('ai-sidebar-overlay')?.classList.remove('show');
 
     const panel = document.getElementById('ai-analytics-panel');
     if (!panel) return;
@@ -843,7 +852,7 @@ async function aiAnimateTyping(bubbleEl, fullText) {
     }
 }
 
-async function aiAppendMsgAnimated(msg) {
+async function aiAppendMsgAnimated(msg, isTF = false) {
     const wrap = document.getElementById('ai-messages-wrap');
     if (!wrap) return;
     wrap.querySelector('.ai-empty-state')?.remove();
@@ -866,33 +875,46 @@ async function aiAppendMsgAnimated(msg) {
     wrap.appendChild(div);
 
     const bubbleEl = div.querySelector('.ai-msg-bubble');
+    const msgBody  = div.querySelector('.ai-msg-body');
     await aiAnimateTyping(bubbleEl, msg.content);
 
-    // كشف أسئلة التفاعل
+    // ── أزرار التفاعل تحت الـ body مباشرة (ليست داخل الـ bubble) ──
     const quizOptions = aiDetectQuiz(msg.content);
-    if (quizOptions) {
-        aiRenderQuizOptions(div, quizOptions);
-    } else {
-        const isTF = aiDetectTrueFalse(msg.content);
-        if (isTF) aiRenderTrueFalseOptions(div);
+    if (quizOptions && msgBody) {
+        const quizEl = _aiMakeQuizContainer(quizOptions);
+        msgBody.appendChild(quizEl);
+    } else if (isTF && msgBody) {
+        const tfEl = _aiMakeTrueFalseContainer();
+        msgBody.appendChild(tfEl);
     }
+
+    // scroll ذكي
+    const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 100;
+    if (atBottom) wrap.scrollTop = wrap.scrollHeight;
 }
 
 // ─── أسئلة الاختيار المتعدد ─────────────────────────────
-function aiRenderQuizOptions(parentEl, options) {
+// Factory: تُنشئ container DOM جاهز يُضاف لـ .ai-msg-body
+function _aiMakeQuizContainer(options) {
     const container = document.createElement('div');
     container.className = 'ai-quiz-container';
     options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className  = 'ai-quiz-btn';
+        btn.className = 'ai-quiz-btn';
         btn.dataset.label = opt.label;
-        btn.innerHTML  = `<span class="ai-quiz-label">${escHtml(opt.label)})</span> ${escHtml(opt.text)}`;
+        btn.innerHTML = `<span class="ai-quiz-label">${escHtml(opt.label)})</span> ${escHtml(opt.text)}`;
         btn.addEventListener('click', () => aiHandleQuizAnswer(btn, opt, container));
         container.appendChild(btn);
     });
-    parentEl.appendChild(container);
+    return container;
+}
+
+// Backward-compat wrapper (تستخدمه الدوال القديمة)
+function aiRenderQuizOptions(parentEl, options) {
+    const body = parentEl.querySelector?.('.ai-msg-body') || parentEl;
+    body.appendChild(_aiMakeQuizContainer(options));
     const wrap = document.getElementById('ai-messages-wrap');
-    if (wrap) setTimeout(() => { wrap.scrollTop = wrap.scrollHeight; }, 50);
+    if (wrap) setTimeout(() => { wrap.scrollTop = wrap.scrollHeight; }, 60);
 }
 
 async function aiHandleQuizAnswer(clickedBtn, option, container) {
@@ -922,13 +944,15 @@ async function aiHandleQuizAnswer(clickedBtn, option, container) {
     try {
         const rawReply = await aiCallAPI(aiActiveChat.messages);
         aiHideTyping();
-        const isCorrect = rawReply.includes('✅');
-        const isWrong   = rawReply.includes('❌');
+        const hasTF     = /\[TRUE_FALSE\]/.test(rawReply);
+        const cleanRaw  = rawReply.replace(/\[TRUE_FALSE\]/g, '').trim();
+        const isCorrect = cleanRaw.includes('✅');
+        const isWrong   = cleanRaw.includes('❌');
         clickedBtn.querySelector('.ai-quiz-thinking')?.remove();
         if (isCorrect) { clickedBtn.classList.add('ai-quiz-correct'); clickedBtn.innerHTML += ' ✅'; }
         else if (isWrong) { clickedBtn.classList.add('ai-quiz-wrong'); clickedBtn.innerHTML += ' ❌'; }
-        const aiMsg = aiAddMessageToChat(aiActiveChat.id, 'assistant', rawReply);
-        await aiAppendMsgAnimated(aiMsg);
+        const aiMsg = aiAddMessageToChat(aiActiveChat.id, 'assistant', cleanRaw);
+        await aiAppendMsgAnimated(aiMsg, hasTF);
         aiRenderSidebar();
     } catch (err) {
         aiHideTyping();
@@ -941,8 +965,80 @@ async function aiHandleQuizAnswer(clickedBtn, option, container) {
     }
 }
 
+// ─── صح / غلط ────────────────────────────────────────────
+function _aiMakeTrueFalseContainer() {
+    const container = document.createElement('div');
+    container.className = 'ai-tf-container';
+
+    const trueBtn  = document.createElement('button');
+    trueBtn.className = 'ai-tf-btn ai-tf-true';
+    trueBtn.innerHTML = '<i class="fas fa-check"></i> صح ✅';
+
+    const falseBtn = document.createElement('button');
+    falseBtn.className = 'ai-tf-btn ai-tf-false';
+    falseBtn.innerHTML = '<i class="fas fa-times"></i> غلط ❌';
+
+    const handler = async (chosen, btn) => {
+        if (container.dataset.answered) return;
+        container.dataset.answered = '1';
+        trueBtn.disabled = falseBtn.disabled = true;
+        [trueBtn, falseBtn].forEach(b => b.classList.add('ai-tf-dim'));
+        btn.classList.remove('ai-tf-dim');
+        btn.classList.add('ai-tf-selected');
+
+        if (!aiActiveChat) return;
+        const choiceText = chosen === 'true' ? 'إجابتي: صح ✅' : 'إجابتي: غلط ❌';
+        const userMsg = aiAddMessageToChat(aiActiveChat.id, 'user', choiceText);
+        aiAppendMsgEl(userMsg);
+        aiRenderSidebar();
+
+        aiIsLoading = true;
+        const sendBtn = document.getElementById('ai-send-btn');
+        if (sendBtn) sendBtn.disabled = true;
+        aiShowTyping();
+        try {
+            const rawReply = await aiCallAPI(aiActiveChat.messages);
+            aiHideTyping();
+            const hasTF    = /\[TRUE_FALSE\]/.test(rawReply);
+            const cleanRaw = rawReply.replace(/\[TRUE_FALSE\]/g, '').trim();
+            const isCorrect = cleanRaw.includes('✅');
+            const isWrong   = cleanRaw.includes('❌');
+            btn.classList.remove('ai-tf-selected');
+            if (isCorrect)    btn.classList.add('ai-tf-correct');
+            else if (isWrong) btn.classList.add('ai-tf-wrong');
+            const aiMsg = aiAddMessageToChat(aiActiveChat.id, 'assistant', cleanRaw);
+            await aiAppendMsgAnimated(aiMsg, hasTF);
+            aiRenderSidebar();
+        } catch {
+            aiHideTyping();
+            const errMsg = aiAddMessageToChat(aiActiveChat.id, 'assistant', '⚠️ حصلت مشكلة — جرب تاني');
+            aiAppendMsgEl(errMsg);
+        } finally {
+            aiIsLoading = false;
+            if (sendBtn) sendBtn.disabled = false;
+        }
+    };
+
+    trueBtn.addEventListener('click',  () => handler('true',  trueBtn));
+    falseBtn.addEventListener('click', () => handler('false', falseBtn));
+    container.appendChild(trueBtn);
+    container.appendChild(falseBtn);
+    return container;
+}
+
+// Backward-compat
+function aiRenderTrueFalseOptions(parentEl) {
+    const body = parentEl.querySelector?.('.ai-msg-body') || parentEl;
+    body.appendChild(_aiMakeTrueFalseContainer());
+}
+
 // ─── لوحة الذاكرة ────────────────────────────────────────
 function aiShowMemoryPanel() {
+    // إغلاق sidebar تلقائياً على الموبايل
+    if (window.innerWidth <= 900) {
+        document.getElementById('ai-sidebar')?.classList.remove('ai-sidebar-open');
+        document.getElementById('ai-sidebar-overlay')?.classList.remove('show');
+    }
     aiHideChat();
     const analytics = document.getElementById('ai-analytics-panel');
     if (analytics) analytics.style.display = 'none';

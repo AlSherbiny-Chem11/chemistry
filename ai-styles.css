@@ -668,18 +668,27 @@
 }
 #ai-sidebar-overlay.show { display: block; }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     #ai-sidebar {
         position: absolute;
         top: 0; right: 0; bottom: 0;
         transform: translateX(100%);
         border-left: none;
         border-right: 1px solid var(--ai-border);
-        width: 80%; max-width: 260px;
+        width: 78%; max-width: 280px;
+        /* الـ sidebar يبدأ تحت الـ header */
+        top: 56px;
+        z-index: 20;
     }
     #ai-sidebar.ai-sidebar-open { transform: translateX(0); }
-    .ai-msg-bubble { font-size: 12px; }
     .ai-report-stats { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+    .ai-msg-bubble { font-size: 13px; line-height: 1.65; }
+    .ai-msg-avatar { width: 28px; height: 28px; font-size: 12px; }
+    #ai-input-bar  { padding: 8px 10px 10px; }
+    #ai-messages-wrap { padding: 12px 10px; }
 }
 
 /* ─── Scrollbar ──────────────────────────────── */
@@ -1094,23 +1103,72 @@
     to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
-/* ── ai-modal position context for popup ── */
-#ai-modal { position: fixed; }
-
-/* ── Top bar fix: ensure header is always visible inside modal ── */
+/* ── Top bar fix: always visible + keyboard safe ── */
 #ai-full-wrap {
     display: flex; flex-direction: column;
     width: 100%; height: 100%;
     overflow: hidden;
 }
-#ai-header { flex-shrink: 0; position: relative; z-index: 20; }
-#ai-body   { flex: 1; overflow: hidden; }
+#ai-header {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+#ai-body   { flex: 1; overflow: hidden; min-height: 0; }
 
-/* ── Mobile: top bar stays fixed ── */
+/* ── Chat area flex fix ── */
+#ai-chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+#ai-messages-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overscroll-behavior: contain;
+    /* لا يتأثر بالكيبورد */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── quiz/TF تحت الرسالة مباشرة بدون تداخل مع الـ bubble ── */
+.ai-quiz-container {
+    display: flex; flex-direction: column; gap: 7px;
+    margin-top: 8px;
+    animation: aiSlideUp .3s both;
+    width: 100%;
+}
+.ai-tf-container {
+    display: flex; gap: 10px;
+    margin-top: 8px;
+    animation: aiSlideUp .3s both;
+    width: 100%;
+}
+
+/* ── Thinking indicator ── */
+.ai-thinking-label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600;
+    color: rgba(197,160,89,.6);
+    margin-bottom: 4px;
+}
+
+/* ── Mobile: top bar stays fixed even with keyboard ── */
 @media (max-width: 640px) {
     #ai-header { position: sticky; top: 0; z-index: 50; }
     #ai-messages-wrap { overscroll-behavior: contain; }
-    /* اختصار أدوات الرسائل على الموبايل */
     .ai-msg-tools { opacity: 1; }
     .ai-tool-btn { width: 28px; height: 28px; }
+    /* sidebar overlay يبدأ من تحت الـ header */
+    #ai-sidebar-overlay.show {
+        top: 56px;
+    }
+    .ai-quiz-btn { font-size: 12px; padding: 9px 10px; }
+    .ai-tf-btn   { font-size: 12px; padding: 9px 6px;  }
 }

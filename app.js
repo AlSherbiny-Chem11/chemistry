@@ -1584,6 +1584,17 @@ async function loadRatingsDetails(lessonId) {
         container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);font-family:Cairo,sans-serif;font-size:12px;">لا توجد تقييمات بعد</div>';
         return;
     }
+
+    // جلب الاسم الحالي للمستخدم الحالي مرة واحدة
+    const myEmail = auth.currentUser?.email?.toLowerCase() || '';
+    let myCurrentName = '';
+    if (myEmail) {
+        try {
+            const myDoc = await db.collection('users_access').doc(myEmail).get();
+            myCurrentName = myDoc.data()?.displayName || myDoc.data()?.googleName || '';
+        } catch(e) {}
+    }
+
     let html = '';
     for (const [email, rating] of entries) {
         let name = ratingUsers[email]?.name;
@@ -1592,11 +1603,13 @@ async function loadRatingsDetails(lessonId) {
             const userDoc = await db.collection('users_access').doc(email).get();
             name = userDoc.data()?.displayName || userDoc.data()?.googleName || email;
         }
+        // استخدم الاسم الحالي لو كانت التقييم للمستخدم الحالي
+        if (email === myEmail && myCurrentName) name = myCurrentName;
+
         const stars = Array.from({length: 5}, (_, i) =>
             `<i class="fas fa-star" style="font-size:11px; color:${i < rating ? '#c5a059' : '#374151'};"></i>`
         ).join('');
 
-        // أفاتار الرتبة بالمساعد الموحّد
         const ratingAvatarHtml = buildAvatarHtml(
             { photoURL: avatarUrl, displayName: name },
             email,
@@ -1728,7 +1741,6 @@ async function doRenderComments(lessonId, snap) {
 
     try {
         if (!snap || snap.empty) {
-            // تحقق من الإصدار قبل تحديث الـ DOM
             if (myVersion !== commentsRenderVersion) return;
             list.innerHTML = `<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.2);font-family:'Cairo',sans-serif;font-size:12px;">
                 <i class="fas fa-comment-dots" style="font-size:24px;margin-bottom:8px;display:block;opacity:0.4;"></i>
@@ -1740,6 +1752,17 @@ async function doRenderComments(lessonId, snap) {
 
         const isMaster = currentUserRole === 'master';
         const myEmail = auth.currentUser?.email?.toLowerCase() || '';
+
+        // ── جلب الاسم الحالي مرة واحدة ──
+        // هكذا التعليقات القديمة تعرض الاسم الجديد تلقائياً
+        let myCurrentName = '';
+        if (myEmail) {
+            try {
+                const myDoc = await db.collection('users_access').doc(myEmail).get();
+                myCurrentName = myDoc.data()?.displayName || myDoc.data()?.googleName || '';
+            } catch(e) {}
+        }
+
         let totalCount = snap.size;
         let html = '';
 
@@ -1747,6 +1770,8 @@ async function doRenderComments(lessonId, snap) {
             const d = doc.data();
             const timeAgo = d.createdAt ? formatTimeAgo(d.createdAt.toDate()) : '';
             const isMe = d.email === myEmail;
+            // الاسم: لو التعليق للمستخدم الحالي استخدم اسمه الجديد
+            const commentName = (isMe && myCurrentName) ? myCurrentName : (d.displayName || 'مجهول');
             const canDelete = isMe || isMaster;
             const nameClickable = isMaster
                 ? `onclick="viewUserProfile('${d.email}','${(d.displayName||'').replace(/'/g,"\\'")}','${(d.avatar||'').replace(/'/g,"\\'")}');" style="cursor:pointer;"`
@@ -1793,6 +1818,7 @@ async function doRenderComments(lessonId, snap) {
 
                 const escapedRName = (r.displayName||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
                 const escapedRText = (r.text||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').substring(0,80);
+                const replyName = (rIsMe && myCurrentName) ? myCurrentName : (r.displayName || 'مجهول');
                 repliesArr.push(`
                 <div style="display:flex;gap:8px;padding:9px 0 9px 0;border-top:1px solid rgba(255,255,255,0.04);margin-top:4px;">
                     <div style="width:2px;background:rgba(197,160,89,0.35);border-radius:2px;flex-shrink:0;margin:0 4px;"></div>
@@ -1801,7 +1827,7 @@ async function doRenderComments(lessonId, snap) {
                          onerror="this.onerror=null;this.src=''">
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
-                            <span ${rNameClick} style="color:${rIsMe?'#c5a059':'rgba(255,255,255,0.9)'};font-family:'Cairo',sans-serif;font-weight:900;font-size:11px;">${r.displayName||'مجهول'}</span>
+                            <span ${rNameClick} style="color:${rIsMe?'#c5a059':'rgba(255,255,255,0.9)'};font-family:'Cairo',sans-serif;font-weight:900;font-size:11px;">${replyName}</span>
                             ${rIsMe ? '<span style="background:rgba(197,160,89,0.15);color:#c5a059;font-size:9px;padding:1px 5px;border-radius:10px;font-family:Cairo,sans-serif;">أنت</span>' : ''}
                             <span style="color:rgba(255,255,255,0.2);font-size:9px;font-family:Cairo,sans-serif;margin-right:auto;">${rTime}</span>
                         </div>
@@ -1849,7 +1875,7 @@ async function doRenderComments(lessonId, snap) {
                          onerror="this.onerror=null;this.src=''">
                     <div style="flex:1;min-width:0;">
                         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
-                            <span ${nameClickable} style="color:${isMe?'#c5a059':'white'};font-family:'Cairo',sans-serif;font-weight:900;font-size:12px;">${d.displayName||'مجهول'}</span>
+                            <span ${nameClickable} style="color:${isMe?'#c5a059':'white'};font-family:'Cairo',sans-serif;font-weight:900;font-size:12px;">${commentName}</span>
                             ${isMe ? '<span style="background:rgba(197,160,89,0.15);color:#c5a059;font-size:9px;padding:1px 6px;border-radius:20px;font-family:Cairo,sans-serif;">أنت</span>' : ''}
                             ${masterBadge}
                             <span style="color:rgba(255,255,255,0.2);font-size:10px;font-family:Cairo,sans-serif;margin-right:auto;">${timeAgo}</span>
@@ -2072,6 +2098,7 @@ async function submitComment() {
                 .collection('replies').add({
                     text, displayName,
                     email: user.email.toLowerCase(),
+                    userEmail: user.email.toLowerCase(),
                     avatar: user.photoURL || '',
                     replyToName,
                     replyToText,
@@ -2085,6 +2112,7 @@ async function submitComment() {
                 .collection('messages').add({
                     text, displayName,
                     email: user.email.toLowerCase(),
+                    userEmail: user.email.toLowerCase(),
                     avatar: user.photoURL || '',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
