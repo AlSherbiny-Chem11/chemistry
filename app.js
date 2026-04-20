@@ -223,76 +223,108 @@ async function loadWatchedLessons() {
 
 
 // ============================================
-//  كشف نوع الجهاز
+//  تسجيل الدخول — يستخدم Redirect دائماً
+//  (Popup لا يعمل على GitHub Pages أو أي دومين
+//   خارجي غير localhost — السبب: Firebase يرفض
+//   الدومين غير المضاف في Authorized Domains)
 // ============================================
-function isMobileDevice() {
-    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent)
-        || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPad Pro
-}
-
 async function login() {
+    const btn = document.querySelector('button[onclick="login()"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-lg"></i><span>جاري التوجيه...</span>';
+    }
     try {
-        const p = new firebase.auth.GoogleAuthProvider();
-        p.setCustomParameters({ prompt: 'select_account' });
-
-        if (isMobileDevice()) {
-            // الموبايل: redirect بدل popup (popup محجوب على الموبايل)
-            await auth.signInWithRedirect(p);
-        } else {
-            // الكمبيوتر: popup يعمل عادي
-            await auth.signInWithPopup(p);
-        }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        // Redirect يعمل على كل الدومينات (localhost + GitHub Pages + أي دومين)
+        // مش زي Popup اللي بيتعطل على الدومينات الخارجية
+        await auth.signInWithRedirect(provider);
     } catch (error) {
-        if (error.code === 'auth/popup-closed-by-user') return;
-        if (error.code === 'auth/cancelled-popup-request') return;
-        console.error("Login Error:", error);
-        showToast("حدثت مشكلة في تسجيل الدخول، حاول مرة أخرى", "error");
+        console.error('[Auth] signInWithRedirect error:', error.code, error.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fab fa-google text-lg"></i><span>دخول المنصة</span>';
+        }
+        _showAuthError(error.code);
     }
 }
 
 // ============================================
-//  معالجة نتيجة الـ Redirect (الموبايل)
-//  يُستدعى تلقائياً عند تحميل الصفحة بعد الـ redirect
+//  معالج نتيجة الـ Redirect — يُنفَّذ أول ما
+//  تُحمَّل الصفحة بعد العودة من Google
 // ============================================
-auth.getRedirectResult().then((result) => {
-    // المستخدم سجّل دخول بنجاح عبر redirect
-    // onAuthStateChanged سيتولى الباقي تلقائياً
-    if (result && result.user) {
-        console.log('[Auth] Redirect sign-in successful:', result.user.email);
-    }
-}).catch((error) => {
-    if (!error || error.code === 'auth/no-current-user') return;
-    console.error('[Auth] Redirect result error:', error.code, error.message);
-
-    // إخفاء شاشة التحميل لو ظهرت
-    const splash = document.getElementById('splash-screen');
-    if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
-
-    // عرض رسالة خطأ مناسبة
-    let msg = 'حدثت مشكلة في تسجيل الدخول، حاول مرة أخرى';
-    if (error.code === 'auth/network-request-failed') msg = 'تحقق من الاتصال بالإنترنت وحاول مرة أخرى';
-    if (error.code === 'auth/user-disabled')          msg = 'هذا الحساب موقوف، تواصل مع الإدارة';
-    if (error.code === 'auth/popup-blocked')           msg = 'المتصفح حجب النافذة، يرجى السماح بالنوافذ المنبثقة';
-
-    // عرض الخطأ بعد تحميل SweetAlert (قد يكون لم يُحمَّل بعد)
-    const tryShowError = () => {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'خطأ في تسجيل الدخول',
-                text: msg,
-                icon: 'error',
-                confirmButtonText: 'حسناً',
-                confirmButtonColor: '#c5a059',
-                background: '#111827',
-                color: '#fff',
-                heightAuto: false
-            });
-        } else {
-            setTimeout(tryShowError, 300);
+auth.getRedirectResult()
+    .then((result) => {
+        // نجاح: onAuthStateChanged يتولى الباقي تلقائياً
+        if (result && result.user) {
+            console.log('[Auth] Redirect OK:', result.user.email);
         }
-    };
-    tryShowError();
-});
+    })
+    .catch((error) => {
+        if (!error || !error.code) return;
+        // auth/no-current-user = مفيش redirect بيحصل دلوقتي — عادي تماماً
+        if (error.code === 'auth/no-current-user') return;
+
+        console.error('[Auth] getRedirectResult error:', error.code, error.message);
+
+        // إخفاء شاشة الـ splash لو ظهرت
+        const splash = document.getElementById('splash-screen');
+        if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 400); }
+
+        // عرض رسالة الخطأ بعد تحميل SweetAlert
+        const _wait = () => {
+            if (typeof Swal !== 'undefined') { _showAuthError(error.code); }
+            else { setTimeout(_wait, 250); }
+        };
+        _wait();
+    });
+
+// ============================================
+//  دالة مساعدة: عرض رسالة خطأ مناسبة
+// ============================================
+function _showAuthError(code) {
+    let title = 'خطأ في تسجيل الدخول';
+    let html  = 'حدثت مشكلة، حاول مرة أخرى.';
+    let icon  = 'error';
+
+    if (code === 'auth/unauthorized-domain') {
+        title = '⚠️ الدومين غير مصرح له';
+        html  = `<div style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;font-size:13px;line-height:1.9;color:rgba(255,255,255,0.85);">
+            <p style="margin:0 0 10px;">المنصة مش شغّالة من هذا الرابط بعد.</p>
+            <p style="margin:0 0 8px;color:#fca5a5;font-weight:700;">المطلوب من المطوّر:</p>
+            <ol style="margin:0;padding-right:18px;color:rgba(255,255,255,0.7);font-size:12px;">
+                <li>افتح <b style="color:#c5a059;">Firebase Console</b></li>
+                <li>روح لـ <b>Authentication → Settings → Authorized domains</b></li>
+                <li>اضغط <b>"Add domain"</b> وأضف: <br/>
+                    <code style="background:rgba(197,160,89,0.15);color:#edd3a1;padding:2px 8px;border-radius:6px;font-size:11px;display:inline-block;margin-top:4px;">
+                        ${window.location.hostname}
+                    </code>
+                </li>
+            </ol>
+        </div>`;
+    } else if (code === 'auth/network-request-failed') {
+        title = 'لا يوجد اتصال بالإنترنت';
+        html  = 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
+    } else if (code === 'auth/user-disabled') {
+        title = 'الحساب موقوف';
+        html  = 'تم تعطيل هذا الحساب. تواصل مع الإدارة.';
+    } else if (code === 'auth/popup-blocked') {
+        title = 'النافذة محجوبة';
+        html  = 'المتصفح حجب نافذة تسجيل الدخول. أضف الموقع لقائمة المواقع المسموح بها.';
+    }
+
+    Swal.fire({
+        title,
+        html,
+        icon,
+        confirmButtonText: 'حسناً',
+        confirmButtonColor: '#c5a059',
+        background: '#111827',
+        color: '#fff',
+        heightAuto: false
+    });
+}
 
 function logout() {
     auth.signOut();
