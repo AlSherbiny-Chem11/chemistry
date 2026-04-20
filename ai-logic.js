@@ -80,6 +80,8 @@ function aiSaveChats(email, chats) {
 
 async function aiSyncToFirestore(email, chats) {
     if (!db) return;
+
+    // ── Metadata (للتحليل والإحصائيات) ──
     const metadata = chats.map(c => ({
         id:           c.id,
         title:        c.title || 'محادثة',
@@ -91,10 +93,36 @@ async function aiSyncToFirestore(email, chats) {
             .filter(m => m.role === 'user')
             .map(m => m.content.substring(0, 150))
     }));
+
+    // ── المحادثات الكاملة بدون imageBase64 (للمزامنة بين الأجهزة) ──
+    // نحذف الصور لأنها ضخمة وبتتعدى حد Firestore (1MB/وثيقة)
+    // بنحتفظ بـ hadImage=true عشان يظهر placeholder في الواجهة
+    const leanChats = chats.map(c => ({
+        ...c,
+        messages: (c.messages || []).map(m => {
+            if (!m.imageBase64) return m;
+            const { imageBase64, imageType, ...rest } = m;
+            return { ...rest, hadImage: true };
+        })
+    }));
+
     await db.collection('ai_chats').doc(email).set(
-        { metadata, email, lastActive: Date.now() },
+        { metadata, chats: leanChats, email, lastActive: Date.now() },
         { merge: true }
     );
+}
+
+// ─── تحميل المحادثات من Firestore (للأجهزة الجديدة) ────────
+async function aiLoadChatsFromFirestore(email) {
+    try {
+        const doc = await db.collection('ai_chats').doc(email).get();
+        if (!doc.exists) return [];
+        const saved = doc.data()?.chats;
+        return Array.isArray(saved) ? saved : [];
+    } catch (e) {
+        console.warn('[AI] Could not load chats from Firestore:', e.message);
+        return [];
+    }
 }
 
 // ─── تحميل كل محتوى المنصة من Firestore ──────────────────
@@ -469,7 +497,24 @@ async function aiInit() {
     if (!user) return;
     aiCurrentUser = user;
     const email = user.email.toLowerCase();
-    aiAllChats   = aiLoadChats(email);
+
+    // ── تحميل المحادثات: localStorage أولاً، ثم Firestore كـ fallback ──
+    // السبب: localStorage مرتبطة بالجهاز، أما Firestore فهي السجل المشترك
+    const localChats = aiLoadChats(email);
+    if (localChats.length > 0) {
+        // جهاز مألوف — نستخدم localStorage (أسرع)
+        aiAllChats = localChats;
+    } else {
+        // جهاز جديد أو تم مسح localStorage — نجلب من Firestore
+        console.log('[AI] localStorage empty — fetching from Firestore for cross-device sync...');
+        const firestoreChats = await aiLoadChatsFromFirestore(email);
+        aiAllChats = firestoreChats;
+        if (firestoreChats.length > 0) {
+            // نخزّن محلياً للمرة الجاية
+            try { localStorage.setItem(aiStorageKey(email), JSON.stringify(firestoreChats)); } catch(e) {}
+            console.log(`[AI] Restored ${firestoreChats.length} chat(s) from Firestore ✅`);
+        }
+    }
 
     // استعادة آخر محادثة فتحها المستخدم (حتى لو ما بعتش فيها)
     const lastId = aiGetLastOpenedChat(email);

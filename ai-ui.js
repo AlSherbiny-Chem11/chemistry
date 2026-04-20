@@ -221,7 +221,9 @@ function aiEmptyStateHTML() {
 }
 
 // ─── إضافة رسالة للـ DOM ──────────────────────────────────
-function aiAppendMsgEl(msg, scroll = true) {
+// skipImageInject=true لما يكون المُستدعي سيحقن الصورة بنفسه (مثل aiSendMessage)
+// skipImageInject=false (افتراضي) لما نعرض التاريخ — نحقن من base64 تلقائياً
+function aiAppendMsgEl(msg, scroll = true, skipImageInject = false) {
     const wrap = document.getElementById('ai-messages-wrap');
     if (!wrap) return;
     const es = wrap.querySelector('.ai-empty-state');
@@ -272,9 +274,21 @@ function aiAppendMsgEl(msg, scroll = true) {
     wrap.appendChild(div);
 
     // ── عرض الصورة المحفوظة عند تحميل التاريخ (إعادة الفتح / Refresh) ──
-    if (isUser && msg.imageBase64) {
+    // skipImageInject=true يعني المُستدعي سيحقن الصورة بنفسه — نتجنب التكرار
+    if (!skipImageInject && isUser && msg.imageBase64) {
         const imgDataUrl = `data:${msg.imageType || 'image/jpeg'};base64,${msg.imageBase64}`;
         aiInjectImageIntoBubble(div, imgDataUrl);
+    }
+    // لو الرسالة كانت فيها صورة لكن اتحذفت base64 (مزامنة بين الأجهزة)
+    if (!skipImageInject && isUser && msg.hadImage && !msg.imageBase64) {
+        const bubble = div.querySelector('.ai-msg-bubble');
+        if (bubble) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'ai-msg-img-placeholder';
+            placeholder.innerHTML = '<i class="fas fa-image"></i><span>صورة (غير متاحة على هذا الجهاز)</span>';
+            placeholder.style.cssText = 'display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(255,255,255,0.05);border-radius:8px;color:rgba(255,255,255,0.35);font-size:11px;margin-bottom:6px;border:1px dashed rgba(255,255,255,0.1);';
+            bubble.insertBefore(placeholder, bubble.firstChild);
+        }
     }
 
     // ── أزرار MCQ / TF للرسائل المحفوظة (إعادة رسم أو تحميل تاريخ) ──
@@ -369,7 +383,8 @@ async function aiSendMessage() {
     const userMsg = aiAddMessageToChat(aiActiveChat.id, 'user', userMsgContent, imageDataToSend);
 
     // عرض الرسالة + الصورة في الـ DOM
-    const userMsgEl = aiAppendMsgEl(userMsg, true);
+    // skipImageInject=true عشان aiAppendMsgEl ما يحقنش الصورة تاني (هنحقنها إحنا هنا)
+    const userMsgEl = aiAppendMsgEl(userMsg, true, true);
     if (hasImage && userMsgEl) {
         aiInjectImageIntoBubble(userMsgEl, _aiPendingImage.objectUrl);
     }
