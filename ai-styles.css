@@ -1607,3 +1607,258 @@
     color: var(--ai-muted);
     display: flex; align-items: center; gap: 5px;
 }
+/* ============================================
+   كتل الكود — Code Block Styling
+   منصة البرمجة والذكاء الاصطناعي
+   ============================================ */
+
+/* ── حاوية كتلة الكود ── */
+.ai-code-block {
+    position: relative;
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0d1117;
+    border: 1px solid rgba(197,160,89,0.2);
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+    direction: ltr;
+    text-align: left;
+}
+
+/* ── شريط رأس الكود ── */
+.ai-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #161b22;
+    border-bottom: 1px solid rgba(197,160,89,0.15);
+}
+
+.ai-code-lang {
+    font-family: 'Cairo', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ai-gold);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ── زرار نسخ الكود ── */
+.ai-code-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(197,160,89,0.25);
+    background: rgba(197,160,89,0.08);
+    color: var(--ai-gold);
+    font-family: 'Cairo', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    direction: rtl;
+}
+.ai-code-copy-btn:hover {
+    background: rgba(197,160,89,0.2);
+    border-color: rgba(197,160,89,0.45);
+}
+.ai-code-copy-btn.copied {
+    background: rgba(34,197,94,0.12);
+    border-color: rgba(34,197,94,0.35);
+    color: #22c55e;
+}
+.ai-code-copy-btn i { font-size: 10px; }
+
+/* ── محتوى الكود ── */
+.ai-code-block pre {
+    margin: 0;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #e6edf3;
+    background: transparent;
+    white-space: pre;
+    tab-size: 2;
+}
+
+.ai-code-block code {
+    background: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    font-size: inherit !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
+/* ── تلوين بسيط لعناصر الكود ── */
+.ai-code-block .tok-keyword  { color: #ff7b72; }
+.ai-code-block .tok-string   { color: #a5d6ff; }
+.ai-code-block .tok-comment  { color: #8b949e; font-style: italic; }
+.ai-code-block .tok-number   { color: #79c0ff; }
+.ai-code-block .tok-function { color: #d2a8ff; }
+.ai-code-block .tok-builtin  { color: #ffa657; }
+
+/* ── inline code ── */
+.ai-msg-bubble code:not(.ai-code-block code) {
+    background: rgba(197,160,89,0.12) !important;
+    border: 1px solid rgba(197,160,89,0.2) !important;
+    border-radius: 5px !important;
+    padding: 1px 6px !important;
+    font-size: 11.5px !important;
+    color: #edd3a1 !important;
+    font-family: 'Fira Code', 'Consolas', monospace !important;
+    direction: ltr;
+    display: inline-block;
+}
+
+/* ── تحسين مظهر الـ bubble عند وجود كود ── */
+.ai-msg-assistant .ai-msg-bubble {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* ── روابط AI ── */
+.ai-link {
+    color: #60a5fa;
+    text-decoration: underline dotted rgba(96,165,250,0.4);
+    word-break: break-all;
+    transition: color 0.15s;
+}
+.ai-link:hover { color: #93c5fd; }
+
+/* ── واتساب زرار ── */
+.ai-wa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(37,211,102,0.12);
+    border: 1px solid rgba(37,211,102,0.25);
+    color: #25D366;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.18s;
+    direction: ltr;
+}
+.ai-wa-btn:hover {
+    background: rgba(37,211,102,0.22);
+    color: #4ade80;
+}
+.ai-wa-btn i { font-size: 13px; }
+
+/* ── rename button visible styles ── */
+.ai-chat-rename-btn {
+    width: 24px; height: 24px;
+    border-radius: 7px; border: none;
+    background: transparent; color: rgba(255,255,255,0.15);
+    font-size: 9px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s; flex-shrink: 0;
+    opacity: 0;
+}
+.ai-chat-item:hover .ai-chat-rename-btn { opacity: 1; }
+.ai-chat-rename-btn:hover { background: rgba(197,160,89,0.15); color: var(--ai-gold); }
+@media (pointer: coarse) {
+    .ai-chat-rename-btn { opacity: 1; color: rgba(197,160,89,0.4); }
+}
+
+/* ── rename input ── */
+.ai-chat-rename-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--ai-border);
+    border-radius: 6px;
+    color: white;
+    font-family: 'Cairo', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    outline: none;
+}
+
+/* ============================================
+   إصلاح layout الديسكتوب للـ AI modal
+   ============================================ */
+
+/* على الشاشات الكبيرة: layout ثابت وصحيح */
+@media (min-width: 900px) {
+    #ai-body {
+        position: relative;
+        overflow: hidden;
+    }
+    #ai-sidebar {
+        transform: none !important;
+        position: relative !important;
+        height: 100% !important;
+    }
+    #ai-sidebar-overlay {
+        display: none !important;
+        pointer-events: none !important;
+    }
+    /* Chat area يملأ المساحة المتبقية */
+    #ai-chat-area {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    /* Analytics + memory panels: فوق chat area */
+    #ai-analytics-panel,
+    #ai-memory-panel {
+        position: absolute;
+        top: 0; left: 0; right: 260px; bottom: 0;
+        z-index: 5;
+    }
+}
+
+/* الموبايل: كل شيء كـ stack عمودي سليم */
+@media (max-width: 899px) {
+    #ai-body {
+        position: relative;
+        overflow: hidden;
+        flex-direction: column-reverse;
+    }
+    #ai-sidebar {
+        position: absolute !important;
+        top: 0; right: 0; bottom: 0;
+        width: 260px !important;
+        z-index: 20 !important;
+        transform: translateX(100%) !important;
+        transition: transform 0.28s cubic-bezier(0.16,1,0.3,1) !important;
+    }
+    #ai-sidebar.ai-sidebar-open {
+        transform: translateX(0) !important;
+    }
+    #ai-sidebar-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 15;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.28s;
+    }
+    #ai-sidebar-overlay.show {
+        display: block;
+        opacity: 1;
+    }
+    #ai-analytics-panel,
+    #ai-memory-panel {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+    }
+    /* body direction fix on mobile */
+    #ai-body {
+        flex-direction: row-reverse;
+    }
+    #ai-chat-area {
+        width: 100% !important;
+        flex: 1;
+    }
+}

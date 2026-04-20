@@ -18,6 +18,34 @@ let currentContentTab = 'all';
 // الصف الحالي في لوحة الأدمن
 let adminCurrentGrade = null;
 
+
+// ============================================
+//  دالة مساعدة: جمع كل الردود المتسلسلة لحذفها
+//  تُستخدم داخل deleteUser للتعامل مع ردود الردود
+// ============================================
+async function collectNestedReplyIds(lessonId, commentId, startReplyIds) {
+    const toDelete = new Set(startReplyIds);
+    let changed = true;
+    
+    // نستمر في البحث حتى ما نلاقيش ردود جديدة
+    while (changed) {
+        changed = false;
+        const allRepliesSnap = await db.collection('comments').doc(lessonId)
+            .collection('messages').doc(commentId)
+            .collection('replies').get();
+        
+        allRepliesSnap.docs.forEach(doc => {
+            const parentId = doc.data().replyToId;
+            // لو الرد ده ابن لأي من اللي عايزين نحذفهم
+            if (parentId && toDelete.has(parentId) && !toDelete.has(doc.id)) {
+                toDelete.add(doc.id);
+                changed = true;
+            }
+        });
+    }
+    return toDelete;
+}
+
 // ============================================
 //  قفل/فتح سكرول الصفحة
 // ============================================
@@ -51,7 +79,7 @@ auth.onAuthStateChanged(async (user) => {
                 showLoginScreen();
                 await Swal.fire({
                     title: 'عفواً.. الحساب غير مسجل!',
-                    text: 'إيميلك مش متضاف في المنصة، تواصل مع مستر محمد الشربيني لتفعيل حسابك.',
+                    text: 'إيميلك مش متضاف في المنصة، تواصل مع الإدارة لتفعيل حسابك.',
                     icon: 'error',
                     confirmButtonText: 'حسناً، فهمت',
                     background: '#111827',
@@ -133,7 +161,7 @@ auth.onAuthStateChanged(async (user) => {
                     showLoginScreen();
                     await Swal.fire({
                         title: 'لم يتم تحديد صفك الدراسي!',
-                        text: 'تواصل مع مستر محمد الشربيني لتحديد الصف الدراسي الخاص بك.',
+                        text: 'تواصل مع الإدارة لتحديد القسم الخاص بك.',
                         icon: 'warning',
                         confirmButtonText: 'حسناً',
                         background: '#111827',
@@ -266,10 +294,10 @@ async function selectGrade(id, name) {
     if (tabAll) tabAll.classList.add('active');
 
     const map = {
-        '1-mid':'الأول الإعدادي','2-mid':'الثاني الإعدادي','3-mid':'الثالث الإعدادي',
-        '1-sec':'الأول الثانوي','2-sec':'الثاني الثانوي','3-sec':'الثالث الثانوي'
+        '1-mid':'مستوى المبتدئ','2-mid':'مستوى المتوسط','3-mid':'مستوى المتقدم',
+        '1-sec':'Python & البرمجة','2-sec':'Web Development','3-sec':'AI & Machine Learning'
     };
-    document.getElementById('grade-title').innerText = "محاضرات " + (name || map[id]);
+    document.getElementById('grade-title').innerText = "دروس " + (name || map[id]);
 
     if (auth.currentUser) {
         const userEmail = auth.currentUser.email.toLowerCase();
@@ -746,18 +774,27 @@ function adminSwitchGrade(grade) {
 }
 
 // ============================================
-//  حذف درس
+//  حذف درس - مع حذف البيانات المرتبطة
 // ============================================
 async function deleteDoc(id) {
     const result = await Swal.fire({
         target: document.getElementById('admin-modal'),
-        title: 'حذف المحتوى؟',
-        text: "لن تتمكن من استعادته بعد الحذف",
+        title: '⚠️ حذف شامل للمحتوى؟',
+        html: `<div style="font-family:'Cairo',sans-serif;text-align:right;font-size:13px;color:rgba(255,255,255,0.8)">
+            <p style="margin:0 0 10px">سيتم حذف:</p>
+            <ul style="margin:0;padding-right:16px;line-height:1.8;color:rgba(255,255,255,0.6)">
+                <li>🎥 الدرس نفسه</li>
+                <li>⭐ جميع التقييمات عليه</li>
+                <li>💬 جميع التعليقات والردود</li>
+                <li>📚 إزالة الدرس من سجلات مشاهدات الطلاب</li>
+            </ul>
+            <p style="margin:12px 0 0;color:#fca5a5;font-size:12px">⚠️ لا يمكن التراجع عن هذه العملية</p>
+        </div>`,
         icon: 'error',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'نعم، احذف نهائياً',
+        confirmButtonText: 'نعم، احذف كل شيء',
         cancelButtonText: 'تراجع',
         background: '#111827',
         color: '#fff',
@@ -765,13 +802,102 @@ async function deleteDoc(id) {
         scrollbarPadding: false,
         returnFocus: false
     });
-    if (result.isConfirmed) {
-        try {
-            await db.collection("lessons").doc(id).delete();
-            showToast("تم الحذف بنجاح ✅");
-        } catch (error) {
-            showToast("حدث خطأ أثناء الحذف", "error");
+
+    if (!result.isConfirmed) return;
+
+    // شاشة تحميل
+    Swal.fire({
+        title: 'جاري الحذف...',
+        html: `<div style="font-family:'Cairo',sans-serif;font-size:12px;color:rgba(255,255,255,0.5)">
+            <i class="fas fa-spinner fa-spin" style="font-size:20px;color:#c5a059;display:block;margin-bottom:10px"></i>
+            يتم تنظيف جميع البيانات المرتبطة...
+        </div>`,
+        background: '#111827',
+        color: '#fff',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        heightAuto: false
+    });
+
+    try {
+        // ─── مساعد: تنفيذ batch مع ضمان عدم تجاوز حد 500 عملية ───
+        async function commitSafeBatch(ops) {
+            const LIMIT = 490;
+            for (let i = 0; i < ops.length; i += LIMIT) {
+                const chunk  = ops.slice(i, i + LIMIT);
+                const bLocal = db.batch();
+                chunk.forEach(fn => fn(bLocal));
+                await bLocal.commit();
+            }
         }
+
+        const deleteOps = [];
+
+        // 1️⃣ حذف الدرس نفسه
+        deleteOps.push(b => b.delete(db.collection("lessons").doc(id)));
+
+        // 2️⃣ حذف وثيقة التقييمات بالكامل (الوثيقة مرتبطة بـ lessonId حصراً)
+        deleteOps.push(b => b.delete(db.collection("ratings").doc(id)));
+
+        // 3️⃣ حذف التعليقات والردود كاملاً
+        const commentsSnap = await db.collection("comments").doc(id)
+            .collection("messages").get();
+
+        for (const msgDoc of commentsSnap.docs) {
+            // جلب كل الردود على هذا التعليق
+            const repliesSnap = await db.collection("comments").doc(id)
+                .collection("messages").doc(msgDoc.id)
+                .collection("replies").get();
+
+            // حذف كل الردود
+            repliesSnap.forEach(replyDoc => {
+                deleteOps.push(b => b.delete(replyDoc.ref));
+            });
+
+            // حذف التعليق نفسه
+            deleteOps.push(b => b.delete(msgDoc.ref));
+        }
+
+        // 4️⃣ إزالة الدرس من سجلات مشاهدات جميع الطلاب
+        // نجلب دفعات بحد أقصى 500 لكل مرة لتجنب الـ read limit
+        const watchedSnap = await db.collection("watched").get();
+        watchedSnap.forEach(doc => {
+            const lessons = doc.data()?.lessons || [];
+            if (lessons.includes(id)) {
+                deleteOps.push(b => b.update(doc.ref, {
+                    lessons: firebase.firestore.FieldValue.arrayRemove(id)
+                }));
+            }
+        });
+
+        // تنفيذ الكل بشكل آمن مع تقسيم تلقائي عند تجاوز 490 عملية
+        await commitSafeBatch(deleteOps);
+
+        Swal.fire({
+            title: 'تم الحذف ✅',
+            text: 'تم حذف المحتوى وجميع البيانات المرتبطة به',
+            icon: 'success',
+            timer: 2500,
+            showConfirmButton: false,
+            background: '#111827',
+            color: '#fff',
+            heightAuto: false,
+        });
+
+        showToast("تم الحذف بنجاح ✅");
+
+    } catch (e) {
+        console.error("deleteDoc error:", e);
+        Swal.fire({
+            title: 'حدث خطأ!',
+            text: 'تعذّر إتمام عملية الحذف، حاول مرة أخرى',
+            icon: 'error',
+            confirmButtonColor: '#ef4444',
+            background: '#111827',
+            color: '#fff',
+            heightAuto: false,
+        });
+        showToast("حدث خطأ أثناء الحذف", "error");
     }
 }
 
@@ -851,6 +977,49 @@ function toggleGradesContainer(val) {
     }
 }
 
+// ============================================
+//  تنظيف بيانات إيميل قديم عند تغيير الإيميل
+//  يُستخدم داخل addUser لما الأدمن يغير إيميل طالب
+// ============================================
+async function cleanupUserData(oldEmail) {
+    const oldEmailLower = oldEmail.toLowerCase();
+    try {
+        const cleanBatch = db.batch();
+
+        // 1. سجل المشاهدات
+        cleanBatch.delete(db.collection("watched").doc(oldEmailLower));
+
+        // 2. التقييمات (ratings + ratingUsers)
+        const ratSnap = await db.collection("ratings").get();
+        ratSnap.forEach(doc => {
+            const data  = doc.data();
+            const hasRating = (oldEmailLower in (data.ratings || {})) ||
+                              (oldEmailLower in (data.ratingUsers || {}));
+            if (hasRating) {
+                cleanBatch.update(doc.ref, {
+                    [`ratings.${oldEmailLower}`]:     firebase.firestore.FieldValue.delete(),
+                    [`ratingUsers.${oldEmailLower}`]: firebase.firestore.FieldValue.delete()
+                });
+            }
+        });
+
+        await cleanBatch.commit();
+
+        // 3. بيانات AI — خارج الـ batch
+        await db.collection("ai_chats").doc(oldEmailLower).delete().catch(() => {});
+        await db.collection("ai_memories").doc(oldEmailLower).delete().catch(() => {});
+
+        // 4. localStorage
+        try {
+            localStorage.removeItem(`ai_chats_v2_${oldEmailLower}`);
+            localStorage.removeItem(`ai_chats_${oldEmailLower}`);
+        } catch(e) {}
+
+    } catch(e) {
+        console.warn("cleanupUserData error:", e);
+    }
+}
+
 async function addUser() {
     const emailInput = document.getElementById('new-user-email');
     const email = emailInput.value.trim().toLowerCase();
@@ -864,13 +1033,16 @@ async function addUser() {
         : [];
 
     if (role === 'student' && allowedGrades.length === 0) {
-        return showToast("اختار صف واحد على الأقل للطالب!", "warning");
+        return showToast("اختار قسم واحد على الأقل للمشترك!", "warning");
     }
 
     btn.disabled = true;
     try {
         if (btn.innerText.includes("تحديث") && editingId && editingId !== email) {
+            // حذف users_access القديم
             await db.collection("users_access").doc(editingId).delete();
+            // تنظيف بيانات الإيميل القديم (مشاهدات + تقييمات + AI)
+            await cleanupUserData(editingId);
         }
 
         const dataToSave = {
@@ -928,14 +1100,14 @@ function loadUsersList() {
                 'width:36px;height:36px;border-radius:10px;border:1px solid rgba(197,160,89,0.2);'
             );
 
-            let badgeText = isTargetMaster ? "👑 مشرف عام" : "🎓 طالب";
+            let badgeText = isTargetMaster ? "👨‍💻 مطوّر" : "🎓 مشترك";
             let badgeStyle = isTargetMaster
                 ? "color:#ff9068; font-size:9px; font-weight:700;"
                 : "color:#60a5fa; font-size:9px; font-weight:700;";
 
             const gradeNames = (data.allowedGrades || []).map(g => ({
-                '1-mid':'إعدادي١','2-mid':'إعدادي٢','3-mid':'إعدادي٣',
-                '1-sec':'ثانوي١','2-sec':'ثانوي٢','3-sec':'ثانوي٣'
+                '1-mid':'مبتدئ','2-mid':'متوسط','3-mid':'متقدم',
+                '1-sec':'Python','2-sec':'Web Dev','3-sec':'AI & ML'
             }[g] || g)).join(' · ');
 
             const editBtn = (!isTargetSelf) ? `
@@ -1052,57 +1224,85 @@ async function deleteUser(email) {
     });
 
     try {
-        const batch = db.batch();
         const emailLower = email.toLowerCase();
 
-        // ---- 1. حذف صلاحية الوصول ----
-        batch.delete(db.collection("users_access").doc(emailLower));
+        // ─── مساعد: تنفيذ batch مع ضمان عدم تجاوز حد 500 عملية ───
+        async function commitSafeBatch(ops) {
+            // ops = مصفوفة دوال: (batch) => void
+            const LIMIT = 490;
+            for (let i = 0; i < ops.length; i += LIMIT) {
+                const chunk  = ops.slice(i, i + LIMIT);
+                const bLocal = db.batch();
+                chunk.forEach(fn => fn(bLocal));
+                await bLocal.commit();
+            }
+        }
 
-        // ---- 2. حذف سجل المشاهدات ----
-        batch.delete(db.collection("watched").doc(emailLower));
+        // ─── جمع كل العمليات هنا ───
+        const deleteOps = [];
 
-        // ---- 3. حذف التقييمات من كل الدروس ----
+        // ── 1. صلاحية الوصول ──
+        deleteOps.push(b => b.delete(db.collection("users_access").doc(emailLower)));
+
+        // ── 2. سجل المشاهدات ──
+        deleteOps.push(b => b.delete(db.collection("watched").doc(emailLower)));
+
+        // ── 3. التقييمات — يُزيل فقط إدخالات هذا المستخدم من كل وثيقة rating ──
+        // لا يُحذف الوثيقة كلها حتى لا تُمسّ تقييمات بقية الطلاب
         const ratingsSnap = await db.collection("ratings").get();
-        ratingsSnap.forEach(doc => {
-            const ratings = doc.data().ratings || {};
-            if (emailLower in ratings) {
-                batch.update(doc.ref, {
-                    [`ratings.${emailLower}`]: firebase.firestore.FieldValue.delete()
-                });
+        ratingsSnap.forEach(rDoc => {
+            const data        = rDoc.data();
+            const ratings     = data.ratings     || {};
+            const ratingUsers = data.ratingUsers || {};
+            if ((emailLower in ratings) || (emailLower in ratingUsers)) {
+                deleteOps.push(b => b.update(rDoc.ref, {
+                    [`ratings.${emailLower}`]:     firebase.firestore.FieldValue.delete(),
+                    [`ratingUsers.${emailLower}`]: firebase.firestore.FieldValue.delete()
+                }));
             }
         });
 
-        // ---- 4. حذف التعليقات والردود من كل الدروس ----
+        // ── 4. التعليقات والردود ──
+        // الحذف مقيّد بإيميل المستخدم المستهدف فقط
+        // • ردوده على تعليقات الآخرين → تُحذف
+        // • تعليقاته الخاصة + كل الردود عليها (من أي مستخدم) → تُحذف
+        //   (الردود على تعليق محذوف تصبح orphans لو تركناها)
         const lessonsSnap = await db.collection("lessons").get();
 
         for (const lessonDoc of lessonsSnap.docs) {
-            const lessonId = lessonDoc.id;
+            const lessonId    = lessonDoc.id;
             const messagesSnap = await db.collection("comments")
                 .doc(lessonId).collection("messages").get();
 
             for (const msgDoc of messagesSnap.docs) {
                 const msgData = msgDoc.data();
 
-                // حذف ردوده على تعليقات الآخرين
+                // جلب كل الردود على هذا التعليق
                 const repliesSnap = await msgDoc.ref.collection("replies").get();
-                repliesSnap.forEach(replyDoc => {
-                    if (replyDoc.data().email === emailLower) {
-                        batch.delete(replyDoc.ref);
-                    }
-                });
 
-                // لو التعليق نفسه بتاعه: احذفه + كل ردوده
                 if (msgData.email === emailLower) {
-                    repliesSnap.forEach(replyDoc => batch.delete(replyDoc.ref));
-                    batch.delete(msgDoc.ref);
+                    // التعليق بتاعه: احذف التعليق + كل الردود عليه (من أي مستخدم)
+                    // لأن الردود بتبقى orphans لو التعليق الأب اتحذف
+                    repliesSnap.forEach(replyDoc => {
+                        deleteOps.push(b => b.delete(replyDoc.ref));
+                    });
+                    deleteOps.push(b => b.delete(msgDoc.ref));
+                } else {
+                    // التعليق مش بتاعه: احذف فقط ردوده هو على هذا التعليق
+                    repliesSnap.forEach(replyDoc => {
+                        if (replyDoc.data().email === emailLower) {
+                            deleteOps.push(b => b.delete(replyDoc.ref));
+                        }
+                    });
                 }
             }
         }
 
-        await batch.commit();
+        // ── تنفيذ كل عمليات الـ Firestore على شكل batches آمنة ──
+        await commitSafeBatch(deleteOps);
 
-        // ---- 5. حذف بيانات AI (chats + memories) ----
-        // هذه عمليات منفصلة لأنها خارج نطاق الـ batch الأساسي
+        // ── 5. بيانات AI — وثائق مرتبطة بهذا الإيميل حصراً ──
+        // يُحذف فقط وثيقة المستخدم المستهدف بدون أي تأثير على بقية المستخدمين
         try {
             await db.collection("ai_chats").doc(emailLower).delete();
         } catch(aiE) { console.warn("ai_chats delete skip:", aiE.message); }
@@ -1110,8 +1310,7 @@ async function deleteUser(email) {
             await db.collection("ai_memories").doc(emailLower).delete();
         } catch(aiE) { console.warn("ai_memories delete skip:", aiE.message); }
 
-        // ---- 6. حذف بيانات AI من localStorage (كل الـ keys المحتملة) ----
-        // نمط المفتاح: ai_chats_v2_{email} + ai_chats_{email} (للتوافق مع النسخ القديمة)
+        // ── 6. localStorage — مفاتيح خاصة بهذا الإيميل فقط ──
         try {
             localStorage.removeItem(`ai_chats_v2_${emailLower}`);
             localStorage.removeItem(`ai_chats_${emailLower}`);
@@ -1291,8 +1490,8 @@ function filterVideos() {
 //  ملف الطالب (Profile)
 // ============================================
 const gradeMap = {
-    '1-mid':'أولى إعدادي','2-mid':'تانية إعدادي','3-mid':'تالتة إعدادي',
-    '1-sec':'أولى ثانوي','2-sec':'تانية ثانوي','3-sec':'تالتة ثانوي'
+    '1-mid':'مستوى المبتدئ','2-mid':'مستوى المتوسط','3-mid':'مستوى المتقدم',
+    '1-sec':'Python & البرمجة','2-sec':'Web Development','3-sec':'AI & Machine Learning'
 };
 
 // ============================================
@@ -1373,10 +1572,10 @@ async function openProfile() {
 
     const badge = document.getElementById('profile-role-badge');
     if (role === 'master') {
-        badge.innerText = '👑 مشرف عام';
+        badge.innerText = '👨‍💻 مطوّر';
         badge.style.cssText = 'background:linear-gradient(90deg,#ff4b1f,#ff9068);color:white;padding:4px 14px;border-radius:30px;font-size:11px;font-weight:900;';
     } else {
-        badge.innerText = '🎓 طالب';
+        badge.innerText = '🎓 مشترك';
         badge.style.cssText = 'background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);padding:4px 14px;border-radius:30px;font-size:11px;font-weight:900;';
     }
 
@@ -1402,7 +1601,7 @@ async function openProfile() {
             gradesContainer.innerHTML = `<div style="background:#0f172a;border:1px solid rgba(197,160,89,0.12);border-radius:16px;overflow:hidden;margin-bottom:12px;">
                 <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:7px;">
                     <i class="fas fa-chart-line" style="color:#c5a059;font-size:12px;"></i>
-                    <span style="color:white;font-family:'Cairo',sans-serif;font-weight:900;font-size:13px;">تقدمك الدراسي</span>
+                    <span style="color:white;font-family:'Cairo',sans-serif;font-weight:900;font-size:13px;">تقدمك التعليمي</span>
                 </div>
                 <div id="grade-progress-items" style="padding:14px;display:flex;flex-direction:column;gap:12px;">
                     <div style="text-align:center;color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:11px;">
@@ -2610,7 +2809,7 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', () => {
     Swal.fire({
         title: 'عذراً، لا يوجد اتصال!',
-        text: 'يرجى التحقق من الإنترنت لتتمكن من مشاهدة محاضرات المستر.',
+        text: 'يرجى التحقق من الإنترنت لتتمكن من مشاهدة الدروس.',
         icon: 'error',
         allowOutsideClick: false,
         showConfirmButton: true,

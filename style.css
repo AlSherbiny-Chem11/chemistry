@@ -539,15 +539,16 @@ body {
 
 /* علامة مائية */
 .video-container::after {
-    content: "Property of Al-Sherbini Academy";
+    content: "Salman El-Shorbagy Coding Academy";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 2rem;
+    font-size: 1.6rem;
     color: rgba(255,255,255,0.03);
     pointer-events: none;
     z-index: 100;
+    white-space: nowrap;
 }
 
 /* =========================================
@@ -767,3 +768,102 @@ body {
     color: white !important;
 }
 #new-user-role:focus { border-color: #3b82f6; background-color: #1f2937; }
+/* =========================================
+   إضافات منصة البرمجة — Programming Platform
+   ========================================= */
+
+/* ── بطاقات الدروس: أيقونة البرمجة بدل العلوم ── */
+.lesson-card {
+    background: linear-gradient(160deg, #1a1f2e 0%, #141927 100%);
+}
+
+/* ── منتقي القسم: أيقونات أكبر ── */
+#grade-picker button i {
+    transition: transform 0.2s ease;
+}
+#grade-picker button:hover i {
+    transform: scale(1.15);
+}
+
+/* ── تحسين شبكة الكروت على الشاشات الكبيرة ── */
+@media (min-width: 1024px) {
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    }
+}
+@media (min-width: 1280px) {
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    }
+}
+
+/* ── شارة المطوّر — تحل محل شارة المشرف العام ── */
+.developer-badge {
+    background: linear-gradient(90deg, #6366f1, #818cf8) !important;
+    color: white !important;
+    padding: 2px 8px !important;
+    border-radius: 50px !important;
+    font-weight: 900 !important;
+    display: inline-block;
+    box-shadow: 0 0 12px rgba(99,102,241,0.4);
+}
+
+/* ── تحسين مربع بحث لوحة الأدمن ── */
+#admin-content-search:focus {
+    border-color: rgba(197,160,89,0.5) !important;
+    box-shadow: 0 0 0 2px rgba(197,160,89,0.08);
+}
+
+/* =========================================
+   إصلاحات Layout الديسكتوب
+   ========================================= */
+
+/* منع تمدد أو انعكاس الـ AI modal على شاشات واسعة */
+@media (min-width: 900px) {
+    #ai-modal {
+        flex-direction: row !important;
+    }
+    #ai-body {
+        flex-direction: row-reverse !important;
+    }
+    #ai-sidebar {
+        transform: none !important;
+        position: relative !important;
+        width: 260px !important;
+        flex-shrink: 0 !important;
+    }
+    #ai-sidebar-overlay {
+        display: none !important;
+    }
+    #ai-chat-area {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+}
+
+/* إصلاح layout موبايل — الـ sidebar يطير كـ drawer */
+@media (max-width: 899px) {
+    #ai-sidebar {
+        position: absolute !important;
+        top: 0; right: 0; bottom: 0;
+        z-index: 20 !important;
+        transform: translateX(100%) !important;
+        box-shadow: -8px 0 30px rgba(0,0,0,0.5);
+    }
+    #ai-sidebar.ai-sidebar-open {
+        transform: translateX(0) !important;
+    }
+    #ai-chat-area {
+        width: 100% !important;
+    }
+}
+
+/* =========================================
+   قائمة منسدلة — إصلاح الاتجاه على الـ RTL
+   ========================================= */
+@media (min-width: 769px) {
+    #drop-menu {
+        right: 0;
+        left: auto;
+    }
+}

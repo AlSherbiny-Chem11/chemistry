@@ -200,21 +200,21 @@ function aiRenderMessages() {
 function aiEmptyStateHTML() {
     const name = document.getElementById('user-first-name')?.innerText?.trim() || 'يا صاحبي';
     return `<div class="ai-empty-state">
-        <div class="ai-empty-icon"><i class="fas fa-robot"></i></div>
+        <div class="ai-empty-icon"><i class="fas fa-code"></i></div>
         <h3>أهلاً ${escHtml(name)}! 👋</h3>
-        <p>أنا مساعد الشربيني الذكي، موجود هنا عشان أساعدك في دروس الكيمياء والعلوم 🎓</p>
+        <p>أنا مساعد البرمجة الذكي، موجود هنا عشان أساعدك تتعلم وتبرمج وتحل أي مشكلة في الكود 🚀</p>
         <div class="ai-suggestions">
             <button class="ai-suggestion" onclick="aiSendSuggestion(this)">
-                <i class="fas fa-flask"></i> اشرحلي قانون
+                <i class="fas fa-bug"></i> حل خطأ في الكود
             </button>
             <button class="ai-suggestion" onclick="aiSendSuggestion(this)">
-                <i class="fas fa-atom"></i> الفرق بين
+                <i class="fas fa-code"></i> اشرحلي الكود ده
             </button>
             <button class="ai-suggestion" onclick="aiSendSuggestion(this)">
-                <i class="fas fa-graduation-cap"></i> ذاكرني في
+                <i class="fab fa-python"></i> علمني Python
             </button>
             <button class="ai-suggestion" onclick="aiSendSuggestion(this)">
-                <i class="fas fa-question-circle"></i> ما هو
+                <i class="fas fa-globe"></i> ابدأ Web Development
             </button>
         </div>
     </div>`;
@@ -494,55 +494,115 @@ function aiShowToast(msg, type = 'success') {
     toast._t = setTimeout(() => { toast.className = 'ai-toast'; }, 3000);
 }
 
-// ─── Format text — آمن ومنظم ────────────────────────────
+// ─── Format text — آمن ومنظم مع دعم كامل لكتل الكود ────────────────────────
 function aiFormatText(text) {
     if (!text) return '';
 
-    // الخطوة 1: استخراج الأرقام/الروابط وتبديلها بـ tokens قبل الـ escaping
+    // الخطوة 0: استخراج كتل الكود (``` ... ```) وحفظها في tokens
     const tokens = [];
     let processed = text;
 
-    // wa.me links أولاً
+    // كتل كود متعددة الأسطر: ```lang\ncode\n```
+    processed = processed.replace(/```([a-zA-Z0-9_+#.-]*)\n?([\s\S]*?)```/g, (m, lang, code) => {
+        const i = tokens.length;
+        tokens.push({ type: 'codeblock', lang: lang.trim(), code: code });
+        return `\x01T${i}\x01`;
+    });
+
+    // الخطوة 1: روابط wa.me وأرقام هاتف
     processed = processed.replace(/https?:\/\/wa\.me\/([\d]+)/g, (m, num) => {
         const i = tokens.length;
         tokens.push({ type: 'wa', num });
         return `\x01T${i}\x01`;
     });
 
-    // أرقام مصرية خام (01xxxxxxxxx) — بعد ما استخرجنا wa.me
     processed = processed.replace(/\b(01[0-9]{9})\b/g, (m, num) => {
         const i = tokens.length;
         tokens.push({ type: 'phone', num });
         return `\x01T${i}\x01`;
     });
 
-    // الخطوة 2: HTML escape + markdown
+    // الخطوة 2: HTML escape + markdown بسيط
     let s = processed
         .replace(/&/g,  '&amp;')
         .replace(/</g,  '&lt;')
         .replace(/>/g,  '&gt;')
         .replace(/\*\*(.*?)\*\*/gs, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/gs,     '<em>$1</em>')
-        .replace(/`(.*?)`/g,        '<code>$1</code>')
+        .replace(/`([^`]+)`/g,      '<code>$1</code>')
         .replace(/\n/g,             '<br>');
 
-    // الخطوة 3: روابط عامة (https — غير wa.me)
+    // الخطوة 3: روابط عامة (غير wa.me)
     s = s.replace(/(https?:\/\/(?!wa\.me)[^\s<"'&\x01]+)/g, url => {
-        const label = url.length > 45 ? url.slice(0, 42) + '…' : url;
+        const label = url.length > 50 ? url.slice(0, 47) + '…' : url;
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="ai-link">${label}</a>`;
     });
 
-    // الخطوة 4: إعادة الـ tokens كأزرار واتساب
+    // الخطوة 4: إعادة الـ tokens
     s = s.replace(/\x01T(\d+)\x01/g, (m, idx) => {
         const t = tokens[parseInt(idx)];
         if (!t) return m;
-        const fullNum    = t.type === 'phone' ? '2' + t.num : t.num;
-        const displayNum = t.type === 'phone' ? t.num
-            : t.num.startsWith('2') ? '0' + t.num.slice(2) : t.num;
-        return `<a href="https://wa.me/${fullNum}" target="_blank" rel="noopener noreferrer" class="ai-wa-btn"><i class="fab fa-whatsapp"></i> ${displayNum}</a>`;
+
+        if (t.type === 'codeblock') {
+            const langLabel = t.lang || 'code';
+            const codeId    = 'code_' + Date.now() + '_' + idx;
+            const escapedCode = t.code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            return `<div class="ai-code-block">
+                <div class="ai-code-header">
+                    <span class="ai-code-lang">${langLabel}</span>
+                    <button class="ai-code-copy-btn" onclick="aiCopyCode(this, '${codeId}')">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                </div>
+                <pre><code id="${codeId}">${escapedCode}</code></pre>
+            </div>`;
+        }
+
+        if (t.type === 'wa' || t.type === 'phone') {
+            const fullNum    = t.type === 'phone' ? '2' + t.num : t.num;
+            const displayNum = t.type === 'phone' ? t.num
+                : t.num.startsWith('2') ? '0' + t.num.slice(2) : t.num;
+            return `<a href="https://wa.me/${fullNum}" target="_blank" rel="noopener noreferrer" class="ai-wa-btn"><i class="fab fa-whatsapp"></i> ${displayNum}</a>`;
+        }
+
+        return m;
     });
 
     return s;
+}
+
+// ─── نسخ كود من كتلة الكود ─────────────────────────────────
+function aiCopyCode(btn, codeId) {
+    const el = document.getElementById(codeId);
+    if (!el) return;
+    const text = el.innerText || el.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
 }
 
 function escHtml(s) {
@@ -578,7 +638,7 @@ async function aiShowMasterAnalytics() {
 
     panel.innerHTML = `<div class="ai-analytics-loading">
         <div class="ai-analytics-spinner"></div>
-        <p>جاري تحميل قائمة الطلاب...</p>
+        <p>جاري تحميل قائمة المشتركين...</p>
     </div>`;
 
     try {
@@ -595,7 +655,7 @@ async function aiShowMasterAnalytics() {
             <button class="ai-analytics-back" onclick="aiHideAnalytics()">
                 <i class="fas fa-arrow-right"></i> رجوع
             </button>
-            <h3>📊 تحليل الطلاب</h3>
+            <h3>📊 تحليل المشتركين</h3>
         </div>
         <div class="ai-analytics-search-wrap">
             <i class="fas fa-search"></i>
@@ -604,7 +664,7 @@ async function aiShowMasterAnalytics() {
         </div>
         <div class="ai-students-grid" id="ai-students-grid">
             ${students.length === 0
-                ? '<div class="ai-no-students">لا يوجد طلاب بعد</div>'
+                ? '<div class="ai-no-students">لا يوجد مشتركون بعد</div>'
                 : students.map(s => aiStudentCardHTML(s)).join('')
             }
         </div>`;
