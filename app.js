@@ -222,16 +222,77 @@ async function loadWatchedLessons() {
 }
 
 
+// ============================================
+//  كشف نوع الجهاز
+// ============================================
+function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent)
+        || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPad Pro
+}
+
 async function login() {
     try {
         const p = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(p);
+        p.setCustomParameters({ prompt: 'select_account' });
+
+        if (isMobileDevice()) {
+            // الموبايل: redirect بدل popup (popup محجوب على الموبايل)
+            await auth.signInWithRedirect(p);
+        } else {
+            // الكمبيوتر: popup يعمل عادي
+            await auth.signInWithPopup(p);
+        }
     } catch (error) {
         if (error.code === 'auth/popup-closed-by-user') return;
+        if (error.code === 'auth/cancelled-popup-request') return;
         console.error("Login Error:", error);
-        showToast("حدثت مشكلة في الاتصال بالإنترنت", "error");
+        showToast("حدثت مشكلة في تسجيل الدخول، حاول مرة أخرى", "error");
     }
 }
+
+// ============================================
+//  معالجة نتيجة الـ Redirect (الموبايل)
+//  يُستدعى تلقائياً عند تحميل الصفحة بعد الـ redirect
+// ============================================
+auth.getRedirectResult().then((result) => {
+    // المستخدم سجّل دخول بنجاح عبر redirect
+    // onAuthStateChanged سيتولى الباقي تلقائياً
+    if (result && result.user) {
+        console.log('[Auth] Redirect sign-in successful:', result.user.email);
+    }
+}).catch((error) => {
+    if (!error || error.code === 'auth/no-current-user') return;
+    console.error('[Auth] Redirect result error:', error.code, error.message);
+
+    // إخفاء شاشة التحميل لو ظهرت
+    const splash = document.getElementById('splash-screen');
+    if (splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
+
+    // عرض رسالة خطأ مناسبة
+    let msg = 'حدثت مشكلة في تسجيل الدخول، حاول مرة أخرى';
+    if (error.code === 'auth/network-request-failed') msg = 'تحقق من الاتصال بالإنترنت وحاول مرة أخرى';
+    if (error.code === 'auth/user-disabled')          msg = 'هذا الحساب موقوف، تواصل مع الإدارة';
+    if (error.code === 'auth/popup-blocked')           msg = 'المتصفح حجب النافذة، يرجى السماح بالنوافذ المنبثقة';
+
+    // عرض الخطأ بعد تحميل SweetAlert (قد يكون لم يُحمَّل بعد)
+    const tryShowError = () => {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'خطأ في تسجيل الدخول',
+                text: msg,
+                icon: 'error',
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#c5a059',
+                background: '#111827',
+                color: '#fff',
+                heightAuto: false
+            });
+        } else {
+            setTimeout(tryShowError, 300);
+        }
+    };
+    tryShowError();
+});
 
 function logout() {
     auth.signOut();
