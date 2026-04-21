@@ -285,12 +285,13 @@ async function loadSections() {
 function renderSectionPicker(allowedGrades) {
     const grid = document.getElementById('grade-picker-grid');
     if (!grid) return;
+
     const toShow = allowedGrades
         ? allSections.filter(s => allowedGrades.includes(s.id))
         : allSections;
 
     if (toShow.length === 0) {
-        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;grid-column:1/-1;padding:40px 0;">لا توجد أقسام متاحة</p>`;
+        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;padding:40px 0;">لا توجد أقسام متاحة</p>`;
         return;
     }
 
@@ -302,43 +303,43 @@ function renderSectionPicker(allowedGrades) {
 
     // المستويات الأساسية
     if (basic.length > 0) {
-        basic.forEach((s, i) => {
+        if (advanced.length > 0) {
+            html += `<div class="gp-section-label">المستويات</div>`;
+        }
+        basic.forEach(s => {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-card"
-                style="animation-delay:${i * 0.05}s">
-                <div class="gp-card-icon icon-default">
+                class="gp-row-card">
+                <div class="gp-row-icon gp-row-icon-default">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-card-name">${s.name}</span>
-                <span class="gp-card-num">LVL 0${i + 1}</span>
+                <span class="gp-row-name">${s.name}</span>
+                <i class="fas fa-chevron-left gp-row-arrow"></i>
             </button>`;
         });
     }
 
     // فاصل بين المجموعتين إذا الاثنتين موجودتين
     if (basic.length > 0 && advanced.length > 0) {
-        html += `<div class="gp-divider">
-            <div class="gp-divider-line"></div>
-            <span class="gp-divider-label">تخصصات</span>
-            <div class="gp-divider-line"></div>
-        </div>`;
+        html += `<div class="gp-row-divider"></div>`;
     }
 
     // التخصصات المتقدمة
     if (advanced.length > 0) {
-        advanced.forEach((s, i) => {
+        if (basic.length > 0) {
+            html += `<div class="gp-section-label">التخصصات</div>`;
+        }
+        advanced.forEach(s => {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-card gp-gold"
-                style="animation-delay:${(basic.length + i) * 0.05}s">
-                <div class="gp-card-icon icon-gold">
+                class="gp-row-card gp-row-card-gold">
+                <div class="gp-row-icon gp-row-icon-gold">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-card-name">${s.name}</span>
-                <span class="gp-card-num">TRACK 0${i + 1}</span>
+                <span class="gp-row-name">${s.name}</span>
+                <i class="fas fa-chevron-left gp-row-arrow gp-row-arrow-gold"></i>
             </button>`;
         });
     }
@@ -430,7 +431,6 @@ function renderSectionsList() {
             </div>
             <div style="flex:1;min-width:0;">
                 <p style="color:white;font-family:'Cairo',sans-serif;font-size:12px;font-weight:900;margin:0;">${s.name}</p>
-                <p style="color:rgba(255,255,255,0.2);font-family:'Cairo',sans-serif;font-size:9px;margin:2px 0 0;font-family:monospace;">${s.id}</p>
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;">
                 <button onclick="renameSectionUI('${s.id}','${s.name.replace(/'/g,"\\'")}')"
@@ -885,7 +885,16 @@ document.addEventListener('click', function(e) {
 //  اختيار الصف
 // ============================================
 function openGradePicker(allowedGrades = null) {
-    renderSectionPicker(allowedGrades);
+    // المشترك العادي: يرى فقط أقسامه المسموح بها دائماً
+    const toFilter = (currentUserRole !== 'master')
+        ? currentUserAllowedGrades
+        : allowedGrades;
+
+    // إظهار / إخفاء زرار X بناءً على وجود قسم نشط
+    const gpClose = document.getElementById('gp-close-btn');
+    if (gpClose) gpClose.style.display = s_grade ? 'flex' : 'none';
+
+    renderSectionPicker(toFilter);
     document.getElementById('grade-picker').classList.remove('hidden');
     const menu = document.getElementById('drop-menu');
     if (menu && menu.style.display === 'flex') toggleMenu();
@@ -1582,7 +1591,9 @@ async function addUser() {
         ? Array.from(document.querySelectorAll('.grade-check:checked')).map(cb => cb.value)
         : [];
 
-    if (role === 'student' && allowedGrades.length === 0) {
+    // عند الإضافة الجديدة: لازم يختار قسم واحد على الأقل
+    // عند التعديل: مسموح إزالة كل الأقسام
+    if (!editingId && role === 'student' && allowedGrades.length === 0) {
         return showToast("اختار قسم واحد على الأقل للمشترك!", "warning");
     }
 

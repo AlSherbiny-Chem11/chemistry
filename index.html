@@ -237,10 +237,20 @@
     <!-- المحتوى الرئيسي -->
     <div class="grade-picker-inner">
 
-        <!-- رأس الواجهة -->
+        <!-- رأس الواجهة + زرار الإغلاق -->
+        <div class="grade-picker-topbar">
+            <!-- زرار X للرجوع - يُظهر فقط لو المستخدم عنده قسم نشط -->
+            <button id="gp-close-btn"
+                onclick="document.getElementById('grade-picker').classList.add('hidden')"
+                style="display:none;"
+                class="gp-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
         <div class="grade-picker-header">
             <div class="grade-picker-logo">
-                <i class="fas fa-code"></i>
+                <i class="fas fa-layer-group"></i>
             </div>
             <div>
                 <h2 class="grade-picker-title">اختر قسمك</h2>
