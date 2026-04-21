@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#07090f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="تعلم البرمجة والذكاء الاصطناعي مع Salman El-Shorbagy — بناء مواقع وتطبيقات حقيقية">
+    <title>منصة Salman El-Shorbagy | تعلم البرمجة والذكاء الاصطناعي</title>
+
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Landing styles -->
+    <link rel="stylesheet" href="landing.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+
+<!-- ── Scroll progress bar ── -->
+<div id="scroll-progress"></div>
+
+<!-- ═══════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════ -->
+<nav class="lp-nav">
+    <a href="#" class="lp-nav-logo">
+        <img src="logo.png" alt="Logo">
+        <span>Salman El-Shorbagy</span>
+    </a>
+    <button class="lp-nav-cta" onclick="document.getElementById('cta-section').scrollIntoView({behavior:'smooth'})">
+        <i class="fab fa-google"></i>
+        ابدأ الآن
+    </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="lp-hero">
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+
+    <!-- floating code snippets -->
+    <div class="code-float cf-1">const learn = () =&gt; {'{'}<br>&nbsp;&nbsp;skill++;<br>{'}'}</div>
+    <div class="code-float cf-2">def build_future():<br>&nbsp;&nbsp;return ai + code</div>
+    <div class="code-float cf-3">&lt;div class="pro"&gt;<br>&nbsp;&nbsp;&lt;/div&gt;</div>
+    <div class="code-float cf-4">npm run success</div>
+
+    <div class="hero-badge reveal">
+        <i class="fas fa-bolt"></i>
+        منصة البرمجة والذكاء الاصطناعي
+    </div>
+
+    <h1 class="hero-title reveal reveal-delay-1">
+        ابنِ <span class="gold">مستقبلك في التقنية</span><br>
+        خطوة بخطوة
+    </h1>
+
+    <div class="hero-typing-wrap reveal reveal-delay-2">
+        <span>تعلم كيف تبني</span>
+        <span id="typing-text"></span>
+    </div>
+
+    <p class="hero-desc reveal reveal-delay-3">
+        منصة متخصصة في تعليم البرمجة من الصفر حتى الاحتراف،
+        مع أحدث أساليب الذكاء الاصطناعي في التطوير.
+        محتوى حقيقي، مشاريع فعلية، نتائج ملموسة.
+    </p>
+
+    <div class="hero-btns reveal reveal-delay-4">
+        <button class="btn-gold-lg" onclick="document.getElementById('cta-section').scrollIntoView({behavior:'smooth'})">
+            <i class="fas fa-rocket"></i>
+            ابدأ رحلتك الآن
+        </button>
+        <button class="btn-ghost" onclick="document.getElementById('why-section').scrollIntoView({behavior:'smooth'})">
+            اكتشف المنصة
+            <i class="fas fa-chevron-down" style="font-size:11px;"></i>
+        </button>
+    </div>
+
+    <div class="hero-scroll-cue">
+        <span>اسحب للأسفل</span>
+        <i class="fas fa-chevron-down"></i>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     WHY PROGRAMMING — لماذا البرمجة؟
+════════════════════════════════════════════ -->
+<section id="why-section" class="lp-section">
+    <div class="reveal"><div class="section-tag"><i class="fas fa-question-circle"></i> السؤال الأهم</div></div>
+    <h2 class="section-title reveal reveal-delay-1">لماذا تتعلم البرمجة الآن؟</h2>
+    <p class="section-sub reveal reveal-delay-2">
+        في زمن التحول الرقمي، البرمجة ليست مجرد مهارة — هي لغة المستقبل.
+        من يفهمها يملك أدوات تغيير العالم.
+    </p>
+
+    <div class="why-grid">
+        <div class="why-card reveal reveal-delay-1">
+            <div class="why-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="why-title">فرص عمل لا تنضب</div>
+            <div class="why-desc">سوق التقنية ينمو بشكل لم يشهده العالم من قبل. المطورون من أعلى الفئات دخلاً في العالم.</div>
+        </div>
+        <div class="why-card reveal reveal-delay-2">
+            <div class="why-icon"><i class="fas fa-globe"></i></div>
+            <div class="why-title">اعمل من أي مكان</div>
+            <div class="why-desc">البرمجة تمنحك حرية العمل عن بُعد لأي شركة في العالم من غرفتك مباشرة.</div>
+        </div>
+        <div class="why-card reveal reveal-delay-3">
+            <div class="why-icon"><i class="fas fa-lightbulb"></i></div>
+            <div class="why-title">حوّل أفكارك لمنتجات</div>
+            <div class="why-desc">عندك فكرة؟ البرمجة تتيح لك بناءها بنفسك — موقع، تطبيق، أو نظام كامل.</div>
+        </div>
+        <div class="why-card reveal reveal-delay-4">
+            <div class="why-icon"><i class="fas fa-robot"></i></div>
+            <div class="why-title">الذكاء الاصطناعي يضاعف قدرتك</div>
+            <div class="why-desc">مبرمج يستخدم AI أسرع ×10 من غيره. تعلم كيف تسخّر هذه الأدوات بكفاءة.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     AI SECTION — مساعد الذكاء الاصطناعي
+════════════════════════════════════════════ -->
+<div class="lp-section-full ai-section-bg">
+    <div class="inner lp-section">
+        <div class="ai-grid">
+            <!-- النص -->
+            <div>
+                <div class="reveal"><div class="section-tag"><i class="fas fa-robot"></i> مميز حصري</div></div>
+                <h2 class="section-title reveal reveal-delay-1">
+                    مساعد AI داخل المنصة<br>
+                    <span style="color:var(--gold)">يرد على أسئلتك فوراً</span>
+                </h2>
+                <p class="section-sub reveal reveal-delay-2">
+                    لا تتوقف عند أي سؤال. مساعدنا الذكي متخصص في البرمجة ويشرح لك الأكواد، يصحح الأخطاء، ويجيب بالعربية.
+                </p>
+                <ul class="ai-features reveal reveal-delay-3">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>شرح فوري للكود</strong> — أرسله وسيشرحه لك خطوة بخطوة</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>تصحيح الأخطاء</strong> — يكتشف الـ Bug ويصلحه مع الشرح</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>أسئلة واختبارات</strong> — يختبرك بأسلوب ذكي وتفاعلي</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>ذاكرة محادثة</strong> — يتذكر ما تعلمته ويبني عليه</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- الكود المتحرك -->
+            <div class="ai-visual reveal reveal-delay-2">
+                <div class="ai-visual-bar">
+                    <span class="dot-r"></span>
+                    <span class="dot-y"></span>
+                    <span class="dot-g"></span>
+                    <span style="color:rgba(255,255,255,0.2);font-size:11px;margin-right:6px;">salman-ai-chat.py</span>
+                </div>
+<pre style="white-space:pre-wrap;font-size:12px;line-height:1.8;">
+<span class="code-cmt"># مساعد البرمجة الذكي</span>
+<span class="code-key">def</span> <span class="code-fn">ask_ai</span>(question):
+    response = <span class="code-fn">ai_model</span>.chat(
+        message=question,
+        language=<span class="code-str">"arabic"</span>,
+        context=<span class="code-str">"programming"</span>
+    )
+    <span class="code-key">return</span> response
+
+<span class="code-cmt"># مثال على استخدام المساعد</span>
+answer = <span class="code-fn">ask_ai</span>(
+    <span class="code-str">"شرح لي ما هو الـ API؟"</span>
+)
+<span class="code-line">print(answer) </span><span class="code-cmt"># ✅ شرح فوري بالعربية</span>
+</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TRACKS — ماذا ستتعلم؟
+════════════════════════════════════════════ -->
+<section class="lp-section">
+    <div class="reveal"><div class="section-tag"><i class="fas fa-layer-group"></i> المسارات التعليمية</div></div>
+    <h2 class="section-title reveal reveal-delay-1">ماذا ستتعلم داخل المنصة؟</h2>
+    <p class="section-sub reveal reveal-delay-2">
+        مسارات متكاملة تأخذك من المبتدئ إلى المحترف، مع محتوى محدّث دائماً بأحدث التقنيات.
+    </p>
+
+    <div class="tracks-grid">
+        <div class="track-card reveal reveal-delay-1">
+            <div class="track-icon track-icon-blue"><i class="fas fa-seedling"></i></div>
+            <div>
+                <div class="track-title">أساسيات البرمجة</div>
+                <div class="track-desc">ابدأ من الصفر وافهم منطق التفكير البرمجي وأساسيات الخوارزميات.</div>
+            </div>
+        </div>
+        <div class="track-card reveal reveal-delay-2">
+            <div class="track-icon track-icon-gold"><i class="fab fa-python"></i></div>
+            <div>
+                <div class="track-title">Python للمطورين</div>
+                <div class="track-desc">أقوى لغة برمجة في العالم — تستخدمها Google, NASA, Instagram.</div>
+            </div>
+        </div>
+        <div class="track-card reveal reveal-delay-3">
+            <div class="track-icon track-icon-green"><i class="fas fa-globe"></i></div>
+            <div>
+                <div class="track-title">تطوير الويب الكامل</div>
+                <div class="track-desc">HTML, CSS, JavaScript, React — ابنِ مواقع احترافية تعمل على الإنترنت.</div>
+            </div>
+        </div>
+        <div class="track-card reveal reveal-delay-4">
+            <div class="track-icon track-icon-purple"><i class="fas fa-brain"></i></div>
+            <div>
+                <div class="track-title">AI & Machine Learning</div>
+                <div class="track-desc">فهم الذكاء الاصطناعي وتعلم الآلة وبناء نماذج ذكية بنفسك.</div>
+            </div>
+        </div>
+        <div class="track-card reveal reveal-delay-1">
+            <div class="track-icon track-icon-rose"><i class="fas fa-mobile-alt"></i></div>
+            <div>
+                <div class="track-title">تطوير التطبيقات</div>
+                <div class="track-desc">بناء تطبيقات موبايل وويب احترافية تصل لملايين المستخدمين.</div>
+            </div>
+        </div>
+        <div class="track-card reveal reveal-delay-2">
+            <div class="track-icon track-icon-cyan"><i class="fas fa-database"></i></div>
+            <div>
+                <div class="track-title">قواعد البيانات والـ Backend</div>
+                <div class="track-desc">SQL, Firebase, APIs — الجانب الخفي الذي يشغّل كل التطبيقات.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STATS — أرقام وحقائق
+════════════════════════════════════════════ -->
+<div class="lp-section-full" style="background:linear-gradient(135deg,rgba(12,18,32,0.6),rgba(7,9,15,0.8));border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="inner" style="padding:60px 24px;">
+        <div class="stats-row reveal">
+            <div class="stat-item">
+                <span class="stat-num" data-count="6" data-suffix="+">0+</span>
+                <div class="stat-label">مسارات تعليمية</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num" data-count="100" data-suffix="+">0+</span>
+                <div class="stat-label">درس وفيديو</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num" data-count="24" data-suffix="/7">0</span>
+                <div class="stat-label">مساعد AI متاح</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num" data-count="100" data-suffix="%">0%</span>
+                <div class="stat-label">محتوى بالعربية</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS — كيف يعمل الانضمام؟
+════════════════════════════════════════════ -->
+<section class="lp-section">
+    <div class="reveal"><div class="section-tag"><i class="fas fa-map-signs"></i> الخطوات</div></div>
+    <h2 class="section-title reveal reveal-delay-1">كيف تبدأ؟ ثلاث خطوات فقط</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:12px;">
+        <div class="why-card reveal reveal-delay-1" style="text-align:center;">
+            <div style="width:48px;height:48px;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'Space Mono',monospace;font-weight:700;color:var(--gold);font-size:18px;">01</div>
+            <div class="why-title">تواصل مع الإدارة</div>
+            <div class="why-desc">أرسل رسالة على واتساب لتفعيل حسابك والاشتراك في المنصة.</div>
+        </div>
+        <div class="why-card reveal reveal-delay-2" style="text-align:center;">
+            <div style="width:48px;height:48px;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'Space Mono',monospace;font-weight:700;color:var(--gold);font-size:18px;">02</div>
+            <div class="why-title">سجّل دخولك</div>
+            <div class="why-desc">استخدم حساب Gmail لتسجيل الدخول فوراً والوصول لمحتواك.</div>
+        </div>
+        <div class="why-card reveal reveal-delay-3" style="text-align:center;">
+            <div style="width:48px;height:48px;background:rgba(197,160,89,0.12);border:1px solid rgba(197,160,89,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'Space Mono',monospace;font-weight:700;color:var(--gold);font-size:18px;">03</div>
+            <div class="why-title">ابدأ التعلم</div>
+            <div class="why-desc">شاهد الدروس، اسأل الـ AI، وابنِ مهاراتك يوماً بعد يوم.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA — زر تسجيل الدخول
+════════════════════════════════════════════ -->
+<section id="cta-section" class="cta-section">
+    <div class="cta-glow"></div>
+
+    <div class="reveal">
+        <div class="section-tag" style="justify-content:center;margin-bottom:20px;">
+            <i class="fas fa-lock-open"></i> الوصول للمنصة
+        </div>
+    </div>
+
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin-bottom:10px;">
+        جاهز تبدأ رحلتك؟
+    </h2>
+    <p style="color:var(--text-muted);font-size:13px;font-weight:600;text-align:center;margin-bottom:36px;" class="reveal reveal-delay-2">
+        اضغط على زر الدخول لو عندك حساب مفعّل على المنصة.
+    </p>
+
+    <!-- WhatsApp للتواصل -->
+    <div class="reveal reveal-delay-2" style="display:flex;justify-content:center;flex-direction:column;align-items:center;gap:8px;margin-bottom:32px;">
+        <p style="font-size:12px;font-weight:700;color:var(--text-muted);text-align:center;">
+            إذا لم تكن مشتركاً بعد، تواصل مع:
+        </p>
+        <a href="https://wa.me/201070401282" target="_blank" class="wa-card">
+            <div class="wa-icon"><i class="fab fa-whatsapp"></i></div>
+            <div class="wa-texts">
+                <div class="wa-label">للاشتراك والاستفسار</div>
+                <div class="wa-name">Salman Elshorbagy</div>
+                <div class="wa-tag">واتساب — اضغط للتواصل المباشر</div>
+            </div>
+            <i class="fas fa-arrow-left" style="color:rgba(37,211,102,0.4);font-size:14px;margin-right:4px;"></i>
+        </a>
+    </div>
+
+    <!-- زر تسجيل الدخول -->
+    <div class="reveal reveal-delay-3">
+        <button id="cta-login-btn" class="cta-login-btn" onclick="loginWithGoogle()">
+            <i class="fab fa-google" style="font-size:17px;"></i>
+            دخول المنصة بحساب Google
+        </button>
+        <p class="cta-note">
+            <i class="fas fa-shield-alt"></i>
+            تسجيل الدخول آمن عبر Google — لا نخزن كلمات المرور
+        </p>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="lp-footer">
+    <p style="margin-bottom:4px;">
+        منصة Salman El-Shorbagy للبرمجة والذكاء الاصطناعي
+    </p>
+    <p style="font-family:'Space Mono',monospace;letter-spacing:2px;font-size:9px;">
+        © 2026 All Rights Reserved — Developed by SALMAN EL-SHORBAGY
+    </p>
+</footer>
+
+<!-- Firebase + Landing Script -->
+<script src="landing.js"></script>
+</body>
+</html>

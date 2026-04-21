@@ -237,20 +237,10 @@
     <!-- المحتوى الرئيسي -->
     <div class="grade-picker-inner">
 
-        <!-- رأس الواجهة + زرار الإغلاق -->
-        <div class="grade-picker-topbar">
-            <!-- زرار X للرجوع - يُظهر فقط لو المستخدم عنده قسم نشط -->
-            <button id="gp-close-btn"
-                onclick="document.getElementById('grade-picker').classList.add('hidden')"
-                style="display:none;"
-                class="gp-close-btn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
+        <!-- رأس الواجهة -->
         <div class="grade-picker-header">
             <div class="grade-picker-logo">
-                <i class="fas fa-layer-group"></i>
+                <i class="fas fa-code"></i>
             </div>
             <div>
                 <h2 class="grade-picker-title">اختر قسمك</h2>
@@ -434,6 +424,17 @@
                 <!-- قائمة المستخدمين -->
                 <div class="bg-black/30 p-5 rounded-2xl border border-white/5">
                     <label class="block text-gray-400 text-xs mb-3 text-right font-bold italic">قائمة المستخدمين:</label>
+                    <!-- بحث في المستخدمين -->
+                    <div style="position:relative; margin-bottom:10px;">
+                        <span style="position:absolute;top:0;bottom:0;right:0;display:flex;align-items:center;padding-right:11px;pointer-events:none;">
+                            <i class="fas fa-search" style="color:rgba(197,160,89,0.55);font-size:11px;"></i>
+                        </span>
+                        <input id="admin-users-search" type="text" oninput="filterAdminUsers()"
+                               placeholder="ابحث بالاسم أو الإيميل..."
+                               style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:white;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;padding:8px 36px 8px 10px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                               onfocus="this.style.borderColor='rgba(197,160,89,0.5)'"
+                               onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    </div>
                     <div id="admin-users-list" class="max-h-[380px] overflow-y-auto"></div>
                 </div>
             </div>

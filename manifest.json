@@ -1,7 +1,7 @@
 {
   "name": "تعليم البرمجه بالـ AI",
   "short_name": "تعليم البرمجه بالـ AI",
-  "start_url": "index.html",
+  "start_url": "landing.html",
   "display": "standalone",
   "background_color": "#080c14",
   "theme_color": "#c5a059",

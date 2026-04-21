@@ -9,6 +9,7 @@ let currentUserRole = 'student';
 let currentUserAllowedGrades = [];
 let usersDataMap = new Map();
 let allSections = []; // الأقسام الديناميكية من Firestore
+let _adminUsersRaw = []; // تخزين بيانات المستخدمين للفلترة بالبحث
 
 // بيانات الدروس المحملة في الذاكرة
 let allLessonsData = { videos: [], images: [] };
@@ -65,6 +66,17 @@ function unlockBodyScroll() {
     document.body.style.width = '';
     window.scrollTo(0, _scrollY);
 }
+
+// ============================================
+//  حماية index.html — يمنع الوصول بدون تسجيل دخول
+// ============================================
+// نخفي المحتوى فوراً حتى يُحدَّد حالة المستخدم
+(function() {
+    const header = document.getElementById('app-header');
+    const content = document.getElementById('app-content');
+    if (header) header.classList.add('hidden');
+    if (content) content.classList.add('hidden');
+})();
 
 // ============================================
 //  إدارة حالة تسجيل الدخول
@@ -285,13 +297,12 @@ async function loadSections() {
 function renderSectionPicker(allowedGrades) {
     const grid = document.getElementById('grade-picker-grid');
     if (!grid) return;
-
     const toShow = allowedGrades
         ? allSections.filter(s => allowedGrades.includes(s.id))
         : allSections;
 
     if (toShow.length === 0) {
-        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;padding:40px 0;">لا توجد أقسام متاحة</p>`;
+        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;grid-column:1/-1;padding:40px 0;">لا توجد أقسام متاحة</p>`;
         return;
     }
 
@@ -303,43 +314,43 @@ function renderSectionPicker(allowedGrades) {
 
     // المستويات الأساسية
     if (basic.length > 0) {
-        if (advanced.length > 0) {
-            html += `<div class="gp-section-label">المستويات</div>`;
-        }
-        basic.forEach(s => {
+        basic.forEach((s, i) => {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-row-card">
-                <div class="gp-row-icon gp-row-icon-default">
+                class="gp-card"
+                style="animation-delay:${i * 0.05}s">
+                <div class="gp-card-icon icon-default">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-row-name">${s.name}</span>
-                <i class="fas fa-chevron-left gp-row-arrow"></i>
+                <span class="gp-card-name">${s.name}</span>
+                <span class="gp-card-num">LVL 0${i + 1}</span>
             </button>`;
         });
     }
 
     // فاصل بين المجموعتين إذا الاثنتين موجودتين
     if (basic.length > 0 && advanced.length > 0) {
-        html += `<div class="gp-row-divider"></div>`;
+        html += `<div class="gp-divider">
+            <div class="gp-divider-line"></div>
+            <span class="gp-divider-label">تخصصات</span>
+            <div class="gp-divider-line"></div>
+        </div>`;
     }
 
     // التخصصات المتقدمة
     if (advanced.length > 0) {
-        if (basic.length > 0) {
-            html += `<div class="gp-section-label">التخصصات</div>`;
-        }
-        advanced.forEach(s => {
+        advanced.forEach((s, i) => {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-row-card gp-row-card-gold">
-                <div class="gp-row-icon gp-row-icon-gold">
+                class="gp-card gp-gold"
+                style="animation-delay:${(basic.length + i) * 0.05}s">
+                <div class="gp-card-icon icon-gold">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-row-name">${s.name}</span>
-                <i class="fas fa-chevron-left gp-row-arrow gp-row-arrow-gold"></i>
+                <span class="gp-card-name">${s.name}</span>
+                <span class="gp-card-num">TRACK 0${i + 1}</span>
             </button>`;
         });
     }
@@ -431,6 +442,7 @@ function renderSectionsList() {
             </div>
             <div style="flex:1;min-width:0;">
                 <p style="color:white;font-family:'Cairo',sans-serif;font-size:12px;font-weight:900;margin:0;">${s.name}</p>
+                <p style="color:rgba(255,255,255,0.2);font-family:'Cairo',sans-serif;font-size:9px;margin:2px 0 0;font-family:monospace;">${s.id}</p>
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;">
                 <button onclick="renameSectionUI('${s.id}','${s.name.replace(/'/g,"\\'")}')"
@@ -885,16 +897,7 @@ document.addEventListener('click', function(e) {
 //  اختيار الصف
 // ============================================
 function openGradePicker(allowedGrades = null) {
-    // المشترك العادي: يرى فقط أقسامه المسموح بها دائماً
-    const toFilter = (currentUserRole !== 'master')
-        ? currentUserAllowedGrades
-        : allowedGrades;
-
-    // إظهار / إخفاء زرار X بناءً على وجود قسم نشط
-    const gpClose = document.getElementById('gp-close-btn');
-    if (gpClose) gpClose.style.display = s_grade ? 'flex' : 'none';
-
-    renderSectionPicker(toFilter);
+    renderSectionPicker(allowedGrades);
     document.getElementById('grade-picker').classList.remove('hidden');
     const menu = document.getElementById('drop-menu');
     if (menu && menu.style.display === 'flex') toggleMenu();
@@ -1591,9 +1594,7 @@ async function addUser() {
         ? Array.from(document.querySelectorAll('.grade-check:checked')).map(cb => cb.value)
         : [];
 
-    // عند الإضافة الجديدة: لازم يختار قسم واحد على الأقل
-    // عند التعديل: مسموح إزالة كل الأقسام
-    if (!editingId && role === 'student' && allowedGrades.length === 0) {
+    if (role === 'student' && allowedGrades.length === 0) {
         return showToast("اختار قسم واحد على الأقل للمشترك!", "warning");
     }
 
@@ -1639,7 +1640,7 @@ function loadUsersList() {
 
     db.collection("users_access").onSnapshot(snap => {
         usersDataMap.clear();
-        let h = "";
+        _adminUsersRaw = [];
 
         snap.forEach(doc => {
             const data = doc.data();
@@ -1682,8 +1683,9 @@ function loadUsersList() {
                     <i class="fas fa-trash-alt" style="font-size:9px;"></i>
                 </button>` : '';
 
-            h += `
-            <div style="display:flex; align-items:center; gap:10px; padding:9px 10px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid ${isTargetSelf ? 'rgba(197,160,89,0.2)' : 'rgba(255,255,255,0.05)'}; margin-bottom:5px;">
+            const itemHtml = `
+            <div data-user-email="${targetEmail}" data-user-name="${(displayedName).toLowerCase()}"
+                 style="display:flex; align-items:center; gap:10px; padding:9px 10px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid ${isTargetSelf ? 'rgba(197,160,89,0.2)' : 'rgba(255,255,255,0.05)'}; margin-bottom:5px;">
                 ${avatarHtml}
                 <div style="flex:1; min-width:0; overflow:hidden;">
                     <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px;flex-wrap:wrap;">
@@ -1702,10 +1704,42 @@ function loadUsersList() {
                     ${deleteBtn}
                 </div>
             </div>`;
+
+            _adminUsersRaw.push({ email: targetEmail, name: (displayedName).toLowerCase(), html: itemHtml });
         });
 
-        list.innerHTML = h || '<div style="color:rgba(255,255,255,0.3); text-align:center; font-size:12px; padding:16px;">لا يوجد مستخدمين</div>';
+        _renderAdminUsersList();
     });
+}
+
+// ============================================
+//  رسم قائمة المستخدمين مع دعم الفلترة
+// ============================================
+function _renderAdminUsersList() {
+    const list = document.getElementById('admin-users-list');
+    if (!list) return;
+    const query = (document.getElementById('admin-users-search')?.value || '').trim().toLowerCase();
+
+    const filtered = query
+        ? _adminUsersRaw.filter(u =>
+            u.email.includes(query) || u.name.includes(query)
+          )
+        : _adminUsersRaw;
+
+    if (filtered.length === 0) {
+        list.innerHTML = query
+            ? `<div style="color:rgba(255,255,255,0.3); text-align:center; font-family:'Cairo',sans-serif; font-size:12px; padding:20px;">لا توجد نتائج لـ "${query}"</div>`
+            : '<div style="color:rgba(255,255,255,0.3); text-align:center; font-size:12px; padding:16px;">لا يوجد مستخدمين</div>';
+        return;
+    }
+    list.innerHTML = filtered.map(u => u.html).join('');
+}
+
+// ============================================
+//  فلترة البحث في المستخدمين (تُستدعى من input)
+// ============================================
+function filterAdminUsers() {
+    _renderAdminUsersList();
 }
 
 function prepareUserEdit(email, role) {
@@ -1902,9 +1936,11 @@ async function deleteUser(email) {
 }
 
 function showLoginScreen() {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-header').classList.add('hidden');
-    document.getElementById('app-content').classList.add('hidden');
+    // إعادة التوجيه لصفحة الـ Landing بدلاً من شاشة الدخول القديمة
+    // نتحقق أولاً إننا مش على landing.html عشان ما نعملش حلقة تحويل
+    if (!window.location.pathname.endsWith('landing.html')) {
+        window.location.replace('landing.html');
+    }
 }
 
 // ============================================
