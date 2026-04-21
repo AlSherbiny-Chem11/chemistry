@@ -89,20 +89,9 @@ auth.onAuthStateChanged(async (user) => {
 
             if (!userDoc.exists) {
                 await auth.signOut();
+                // نضع flag لـ landing.js يعرض Toast عند العودة
+                localStorage.setItem('_access_denied', '1');
                 showLoginScreen();
-                await Swal.fire({
-                    title: 'عفواً.. الحساب غير مسجل!',
-                    text: 'إيميلك مش متضاف في المنصة، تواصل مع الإدارة لتفعيل حسابك.',
-                    icon: 'error',
-                    confirmButtonText: 'حسناً، فهمت',
-                    background: '#111827',
-                    color: '#fff',
-                    confirmButtonColor: '#c5a059',
-                    target: document.getElementById('auth-screen'),
-                    heightAuto: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                });
                 return;
             }
 
@@ -117,7 +106,6 @@ auth.onAuthStateChanged(async (user) => {
                 currentUserAllowedGrades = userData.allowedGrades || [];
             }
 
-            document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-header').classList.remove('hidden');
             document.getElementById('app-content').classList.remove('hidden');
 
@@ -302,7 +290,7 @@ function renderSectionPicker(allowedGrades) {
         : allSections;
 
     if (toShow.length === 0) {
-        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;grid-column:1/-1;padding:40px 0;">لا توجد أقسام متاحة</p>`;
+        grid.innerHTML = `<p style="color:rgba(255,255,255,0.3);font-family:'Cairo',sans-serif;font-size:14px;text-align:center;padding:40px 0;">لا توجد أقسام متاحة</p>`;
         return;
     }
 
@@ -318,24 +306,20 @@ function renderSectionPicker(allowedGrades) {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-card"
+                class="gp-row-card"
                 style="animation-delay:${i * 0.05}s">
-                <div class="gp-card-icon icon-default">
+                <div class="gp-row-icon gp-row-icon-default">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-card-name">${s.name}</span>
-                <span class="gp-card-num">LVL 0${i + 1}</span>
+                <span class="gp-row-name">${s.name}</span>
+                <i class="fas fa-chevron-left gp-row-arrow"></i>
             </button>`;
         });
     }
 
     // فاصل بين المجموعتين إذا الاثنتين موجودتين
     if (basic.length > 0 && advanced.length > 0) {
-        html += `<div class="gp-divider">
-            <div class="gp-divider-line"></div>
-            <span class="gp-divider-label">تخصصات</span>
-            <div class="gp-divider-line"></div>
-        </div>`;
+        html += `<div class="gp-row-divider"></div>`;
     }
 
     // التخصصات المتقدمة
@@ -344,13 +328,13 @@ function renderSectionPicker(allowedGrades) {
             const iconCls = `${s.iconPrefix || 'fas'} ${s.icon || 'fa-code'}`;
             html += `<button data-grade="${s.id}"
                 onclick="selectGrade('${s.id}','${s.name.replace(/'/g, "\\'")}')"
-                class="gp-card gp-gold"
+                class="gp-row-card gp-row-card-gold"
                 style="animation-delay:${(basic.length + i) * 0.05}s">
-                <div class="gp-card-icon icon-gold">
+                <div class="gp-row-icon gp-row-icon-gold">
                     <i class="${iconCls}"></i>
                 </div>
-                <span class="gp-card-name">${s.name}</span>
-                <span class="gp-card-num">TRACK 0${i + 1}</span>
+                <span class="gp-row-name">${s.name}</span>
+                <i class="fas fa-chevron-left gp-row-arrow gp-row-arrow-gold"></i>
             </button>`;
         });
     }
@@ -1594,7 +1578,7 @@ async function addUser() {
         ? Array.from(document.querySelectorAll('.grade-check:checked')).map(cb => cb.value)
         : [];
 
-    if (role === 'student' && allowedGrades.length === 0) {
+    if (role === 'student' && allowedGrades.length === 0 && !editingId) {
         return showToast("اختار قسم واحد على الأقل للمشترك!", "warning");
     }
 
