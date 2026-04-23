@@ -8,6 +8,7 @@ let adminLessonsUnsubscribe = null;
 let currentUserRole = 'student';
 let currentUserAllowedGrades = [];
 let usersDataMap = new Map();
+let _usersListUnsubscribe = null; // guard ضد تكرار listener المستخدمين
 let allSections = []; // الأقسام الديناميكية من Firestore
 let _adminUsersRaw = []; // تخزين بيانات المستخدمين للفلترة بالبحث
 
@@ -124,6 +125,8 @@ auth.onAuthStateChanged(async (user) => {
             updateUserProfile(user);
             await loadWatchedLessons();
             await loadSections(); // تحميل الأقسام الديناميكية
+            initNotifications();  // تهيئة نظام الإشعارات
+            if (userRole === 'master') loadUsersList(); // تحميل بيانات المستخدمين فور الدخول (للإشعارات)
 
             // ══ التحقق من صحة أقسام المستخدم بعد تحميل الأقسام الحالية ══
             // يحمي من حالة: أقسام حُذفت بعد آخر دخول للمستخدم
@@ -1364,6 +1367,12 @@ async function publish() {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             showToast("تم النشر بنجاح 🚀");
+
+            // إرسال إشعار تلقائي لو فعّل المطور الخيار
+            const notifCheck = document.getElementById('v-notify-subscribers');
+            if (notifCheck && notifCheck.checked) {
+                await createAutoNotification(title, grade, type);
+            }
         }
         resetAdminForm();
     } catch (e) {
@@ -1780,10 +1789,15 @@ async function addUser() {
 }
 
 function loadUsersList() {
-    const list = document.getElementById('admin-users-list');
+    // لو الـ listener شغّال بالفعل، أعد رسم القائمة فقط بدون listener جديد
+    if (_usersListUnsubscribe) {
+        _renderAdminUsersList();
+        return;
+    }
+
     const currentUserEmail = auth.currentUser.email.toLowerCase();
 
-    db.collection("users_access").onSnapshot(snap => {
+    _usersListUnsubscribe = db.collection("users_access").onSnapshot(snap => {
         usersDataMap.clear();
         _adminUsersRaw = [];
 
