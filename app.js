@@ -442,7 +442,7 @@ function renderSectionsList() {
                 <p style="color:rgba(255,255,255,0.2);font-family:'Cairo',sans-serif;font-size:9px;margin:2px 0 0;font-family:monospace;">${s.id}</p>
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;">
-                <button onclick="renameSectionUI('${s.id}','${s.name.replace(/'/g,"\\'")}')"
+                <button onclick="renameSectionUI('${s.id}','${s.name.replace(/'/g,"\\'")}','${(s.iconPrefix||'fas')} ${(s.icon||'fa-code')}')"
                     style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);padding:4px 10px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;"
                     onmouseover="this.style.background='rgba(59,130,246,0.35)'" onmouseout="this.style.background='rgba(59,130,246,0.15)'">
                     <i class="fas fa-pen"></i>
@@ -589,8 +589,10 @@ const _ICON_CATEGORIES = {
 
 let _iconPickerCurrentCat = Object.keys(_ICON_CATEGORIES)[0];
 let _iconPickerSelected   = 'fas fa-code';
+let _iconPickerContext    = 'add'; // 'add' | 'edit'
 
-function openIconPicker() {
+function openIconPicker(context = 'add') {
+    _iconPickerContext = context;
     const modal = document.getElementById('icon-picker-modal');
     if (!modal) return;
 
@@ -671,21 +673,26 @@ function _renderIconPickerGrid(query) {
 
 function selectIconForSection(iconCls) {
     _iconPickerSelected = iconCls;
-
-    // تحديث الحقل المخفي
-    const input = document.getElementById('new-section-icon');
-    if (input) input.value = iconCls;
-
-    // تحديث الـ preview
-    const preview = document.getElementById('new-section-icon-preview');
-    if (preview) preview.innerHTML = `<i class="${iconCls}" style="color:#c5a059;font-size:18px;"></i>`;
-
-    // تحديث النص
-    const label = document.getElementById('icon-picker-label');
     const iconName = iconCls.split(' ').pop().replace('fa-', '');
-    if (label) label.textContent = iconName;
 
-    // إغلاق
+    if (_iconPickerContext === 'edit') {
+        // سياق التعديل — يحدّث مكوّنات الـ Swal
+        const preview = document.getElementById('edit-section-icon-preview');
+        if (preview) preview.innerHTML = `<i class="${iconCls}" style="color:#c5a059;font-size:18px;"></i>`;
+        const input = document.getElementById('edit-section-icon-value');
+        if (input) input.value = iconCls;
+        const label = document.getElementById('edit-icon-picker-label');
+        if (label) label.textContent = iconName;
+    } else {
+        // سياق الإضافة — الحقول الأصلية
+        const input = document.getElementById('new-section-icon');
+        if (input) input.value = iconCls;
+        const preview = document.getElementById('new-section-icon-preview');
+        if (preview) preview.innerHTML = `<i class="${iconCls}" style="color:#c5a059;font-size:18px;"></i>`;
+        const label = document.getElementById('icon-picker-label');
+        if (label) label.textContent = iconName;
+    }
+
     closeIconPicker();
 }
 
@@ -726,24 +733,73 @@ async function addNewSection() {
     }
 }
 
-async function renameSectionUI(sectionId, currentName) {
-    const { value: newName } = await Swal.fire({
-        title: 'إعادة تسمية القسم',
-        input: 'text',
-        inputValue: currentName,
-        inputPlaceholder: 'الاسم الجديد...',
+async function renameSectionUI(sectionId, currentName, currentIconCls) {
+    const initIcon = currentIconCls || 'fas fa-code';
+    const initIconName = initIcon.split(' ').pop().replace('fa-', '');
+    _iconPickerSelected = initIcon;
+
+    const { value: formValues, isDismissed } = await Swal.fire({
+        title: 'تعديل القسم',
+        html: `
+            <div style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;">
+                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px;">اسم القسم</label>
+                <input id="swal-section-name" type="text" value="${currentName.replace(/"/g,'&quot;')}"
+                    style="width:100%;box-sizing:border-box;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:white;font-family:'Cairo',sans-serif;font-size:13px;outline:none;margin-bottom:14px;direction:rtl;text-align:right;transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='rgba(197,160,89,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+
+                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px;">الأيقونة</label>
+                <button type="button" onclick="openIconPicker('edit')"
+                    style="width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;cursor:pointer;transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='rgba(197,160,89,0.6)'"
+                    onmouseover="this.style.borderColor='rgba(197,160,89,0.45)'"
+                    onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'">
+                    <div id="edit-section-icon-preview"
+                        style="width:38px;height:38px;background:rgba(197,160,89,0.1);border:1px solid rgba(197,160,89,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="${initIcon}" style="color:#c5a059;font-size:17px;"></i>
+                    </div>
+                    <div style="flex:1;min-width:0;text-align:right;">
+                        <span id="edit-icon-picker-label" style="color:white;font-size:12px;font-weight:700;display:block;">${initIconName}</span>
+                        <span style="color:rgba(255,255,255,0.3);font-size:10px;">اضغط لتغيير الأيقونة</span>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color:rgba(255,255,255,0.3);font-size:11px;flex-shrink:0;"></i>
+                </button>
+                <input type="hidden" id="edit-section-icon-value" value="${initIcon}">
+            </div>
+        `,
         showCancelButton: true,
-        confirmButtonText: 'حفظ',
+        confirmButtonText: 'حفظ التعديلات',
         cancelButtonText: 'إلغاء',
         confirmButtonColor: '#c5a059',
         cancelButtonColor: '#6b7280',
         background: '#111827', color: '#fff', heightAuto: false,
         target: document.getElementById('admin-modal'),
-        inputAttributes: { style: "font-family:'Cairo',sans-serif;direction:rtl;text-align:right;" }
+        preConfirm: () => {
+            const nameVal = document.getElementById('swal-section-name')?.value.trim();
+            const iconVal = document.getElementById('edit-section-icon-value')?.value || initIcon;
+            if (!nameVal) {
+                Swal.showValidationMessage('اكتب اسم القسم أولاً!');
+                return false;
+            }
+            return { name: nameVal, iconCls: iconVal };
+        }
     });
-    if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+    if (isDismissed || !formValues) return;
+
+    const { name: newName, iconCls: newIconCls } = formValues;
+
+    // تحليل الأيقونة لاستخراج الـ prefix والاسم
+    let iconPrefix = 'fas', iconName = 'fa-code';
+    if (newIconCls.includes(' ')) {
+        const parts = newIconCls.split(' ');
+        iconPrefix = parts[0];
+        iconName   = parts.slice(1).join(' ');
+    } else {
+        iconName = newIconCls.startsWith('fa-') ? newIconCls : 'fa-' + newIconCls;
+    }
+
     try {
-        await db.collection('sections').doc(sectionId).update({ name: newName.trim() });
+        await db.collection('sections').doc(sectionId).update({ name: newName, icon: iconName, iconPrefix });
         showToast('تم التحديث ✅');
         await loadSections();
         renderSectionsList();
@@ -2070,7 +2126,7 @@ function playVideo(url, lessonId, title) {
     frame.classList.remove('image-frame');
 
     const modal = document.getElementById('video-player-modal');
-    modal.style.display = 'block';
+    _openPlayerModal();
     modal.removeAttribute('data-content-type');
 
     document.getElementById('video-title-display').innerText = '🎥 ' + (title || '');
@@ -2131,7 +2187,7 @@ function openImageViewer(url, lessonId, title) {
     }
 
     const modal = document.getElementById('video-player-modal');
-    modal.style.display = 'block';
+    _openPlayerModal();
     modal.setAttribute('data-content-type', 'image');
 
     document.getElementById('video-title-display').innerText = '🖼️ ' + (title || '');
@@ -2176,38 +2232,96 @@ function closeImageViewer() {
     closePlayer();
 }
 
+// ============================================
+//  مساعدات الانيميشن — فتح/إغلاق المودال
+// ============================================
+function _openPlayerModal() {
+    const modal    = document.getElementById('video-player-modal');
+    const inner    = modal.querySelector('.vpm-inner');
+    const closeBtn = modal.querySelector('.vpm-close-btn');
+
+    // إزالة أي كلاسات سابقة
+    if (inner)    inner.classList.remove('vpm-enter', 'vpm-exit');
+    if (closeBtn) closeBtn.classList.remove('vpm-btn-visible');
+
+    // إظهار المودال بخلفية شفافة أولاً
+    modal.style.backgroundColor = 'rgba(5,8,15,0)';
+    modal.style.display = 'block';
+
+    // force reflow ثم تشغيل الانيميشن
+    modal.getBoundingClientRect();
+
+    // تحريك الخلفية والمحتوى
+    modal.style.backgroundColor = 'rgba(5,8,15,0.98)';
+    if (inner) inner.classList.add('vpm-enter');
+
+    // زرار الإغلاق يظهر بعد لحظة
+    setTimeout(() => {
+        if (closeBtn) closeBtn.classList.add('vpm-btn-visible');
+    }, 190);
+}
+
+function _closePlayerModal(onComplete) {
+    const modal    = document.getElementById('video-player-modal');
+    const inner    = modal.querySelector('.vpm-inner');
+    const closeBtn = modal.querySelector('.vpm-close-btn');
+
+    // إخفاء زرار الإغلاق فوراً
+    if (closeBtn) closeBtn.classList.remove('vpm-btn-visible');
+
+    // تشغيل انيميشن الإغلاق
+    modal.style.backgroundColor = 'rgba(5,8,15,0)';
+    if (inner) {
+        inner.classList.remove('vpm-enter');
+        inner.classList.add('vpm-exit');
+    }
+
+    // بعد انتهاء الانيميشن — إخفاء وتنظيف
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modal.style.backgroundColor = '';
+        if (inner) inner.classList.remove('vpm-exit');
+        if (onComplete) onComplete();
+    }, 310);
+}
+
+
 function closePlayer() {
-    document.getElementById('main-video-frame').src = "";
-    const modal = document.getElementById('video-player-modal');
-    modal.style.display = 'none';
-    modal.removeAttribute('data-content-type');
-
-    // إعادة ضبط classes الصور والـ Drive overlay
-    const videoContainer = document.querySelector('.video-container');
-    if (videoContainer) {
-        videoContainer.classList.remove('image-view-mode');
-        const driveOverlay = videoContainer.querySelector('.drive-security-overlay');
-        if (driveOverlay) driveOverlay.style.display = 'none';
-    }
+    // إيقاف الميديا فوراً (iframe يتوقف عن التشغيل)
     const frame = document.getElementById('main-video-frame');
-    if (frame) frame.classList.remove('image-frame');
+    if (frame) frame.src = "";
 
-    const commentInput = document.getElementById('comment-input');
-    if (commentInput) commentInput.value = '';
-    cancelReply();
+    // تشغيل انيميشن الإغلاق ثم التنظيف
+    _closePlayerModal(() => {
+        const modal = document.getElementById('video-player-modal');
+        modal.removeAttribute('data-content-type');
 
-    const removeBtn = document.getElementById('remove-rating-btn');
-    if (removeBtn) removeBtn.remove();
+        // إعادة ضبط classes الصور والـ Drive overlay
+        const videoContainer = document.querySelector('.video-container');
+        if (videoContainer) {
+            videoContainer.classList.remove('image-view-mode');
+            const driveOverlay = videoContainer.querySelector('.drive-security-overlay');
+            if (driveOverlay) driveOverlay.style.display = 'none';
+        }
+        if (frame) frame.classList.remove('image-frame');
 
-    if (commentsUnsubscribe) {
-        commentsUnsubscribe();
-        commentsUnsubscribe = null;
-    }
-    _repliesCache = {};
-    _openReplies = new Set();
+        const commentInput = document.getElementById('comment-input');
+        if (commentInput) commentInput.value = '';
+        cancelReply();
 
-    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-    unlockBodyScroll();
+        const removeBtn = document.getElementById('remove-rating-btn');
+        if (removeBtn) removeBtn.remove();
+
+        if (commentsUnsubscribe) {
+            commentsUnsubscribe();
+            commentsUnsubscribe = null;
+        }
+        _repliesCache = {};
+        _openReplies = new Set();
+
+        if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+        unlockBodyScroll();
+    });
 }
 
 // ============================================
@@ -2653,12 +2767,14 @@ let replyingTo = null;
 function linkifyText(text) {
     if (!text) return '';
     const urlRegex = /(https?:\/\/[^\s<>"'،]+|www\.[^\s<>"'،]+|\S+\.(com|net|org|io|dev|app|co|ai|me|info|edu|gov|ly|link|site|online|store|shop|tech|blog|page)[^\s<>"'،]*)/gi;
-    return text.replace(urlRegex, (url) => {
+    const linked = text.replace(urlRegex, (url) => {
         let href = url;
         if (!href.startsWith('http')) href = 'https://' + href;
         const display = url.length > 42 ? url.substring(0, 39) + '...' : url;
         return `<a href="${href}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="color:#60a5fa;text-decoration:underline;word-break:break-all;font-weight:700;">${display}</a>`;
     });
+    // تحويل السطور الجديدة لـ <br> حتى تظهر التعليقات متعددة الأسطر بشكل صحيح
+    return linked.replace(/\r?\n/g, '<br>');
 }
 
 // ── تثبيت/إلغاء تثبيت التعليق (للمطوّر فقط) ──
@@ -2693,6 +2809,55 @@ let _repliesCache = {};
 const REPLIES_PAGE_SIZE = 10;
 // الـ threads المفتوحة — تبقى مفتوحة عبر عمليات الـ re-render
 let _openReplies = new Set();
+// ترتيب التعليقات: 'desc' = الأحدث أولاً (الافتراضي)، 'asc' = الأقدم أولاً
+let commentsSortOrder = 'desc';
+
+// ============================================
+//  ترتيب التعليقات
+// ============================================
+function toggleCommentSort(e) {
+    e && e.stopPropagation();
+    const menu = document.getElementById('comment-sort-menu');
+    if (!menu) return;
+    const isOpen = menu.style.display === 'block';
+    menu.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) {
+        setTimeout(() => {
+            document.addEventListener('click', _closeCommentSortMenu, { once: true });
+        }, 10);
+    }
+}
+
+function _closeCommentSortMenu() {
+    const menu = document.getElementById('comment-sort-menu');
+    if (menu) menu.style.display = 'none';
+}
+
+function applyCommentSort(order) {
+    commentsSortOrder = order;
+    _closeCommentSortMenu();
+    _updateCommentSortBtn();
+    // إعادة render باستخدام نظام الإصدارات
+    if (currentLessonId) forceReloadComments(currentLessonId);
+}
+
+function _updateCommentSortBtn() {
+    const btn = document.getElementById('comment-sort-btn');
+    if (!btn) return;
+    const isDesc = commentsSortOrder === 'desc';
+    btn.title = isDesc ? 'الأحدث أولاً' : 'الأقدم أولاً';
+    // تحديث الـ check marks في القائمة
+    const descCheck = document.getElementById('cmt-sort-desc-check');
+    const ascCheck  = document.getElementById('cmt-sort-asc-check');
+    if (descCheck) descCheck.style.display = isDesc ? '' : 'none';
+    if (ascCheck)  ascCheck.style.display  = !isDesc ? '' : 'none';
+    // لون الزرار لما الترتيب غير الافتراضي (asc)
+    if (!isDesc) {
+        btn.style.color = 'rgba(197,160,89,0.7)';
+    } else {
+        btn.style.color = 'rgba(255,255,255,0.35)';
+    }
+}
 
 function listenComments(lessonId) {
     if (commentsUnsubscribe) commentsUnsubscribe();
@@ -2700,6 +2865,8 @@ function listenComments(lessonId) {
     commentsRenderVersion = 0;
     _repliesCache = {};
     _openReplies = new Set();
+    commentsSortOrder = 'desc'; // إعادة ضبط الترتيب لكل فيديو جديد
+    _updateCommentSortBtn();
 
     commentsUnsubscribe = db.collection('comments').doc(lessonId)
         .collection('messages')
@@ -2755,14 +2922,14 @@ async function doRenderComments(lessonId, snap) {
             console.warn('[doRenderComments] fetch pins failed:', e);
         }
 
-        // ── ترتيب التعليقات: المثبتة أولاً، ثم الأقدم ──
+        // ── ترتيب التعليقات: المثبتة أولاً، ثم حسب الترتيب المختار ──
         const sortedDocs = [...snap.docs].sort((a, b) => {
             const aPinned = pinnedCommentsMap[a.id] === true ? 1 : 0;
             const bPinned = pinnedCommentsMap[b.id] === true ? 1 : 0;
             if (bPinned !== aPinned) return bPinned - aPinned;
             const ta = a.data().createdAt?.toMillis?.() || 0;
             const tb = b.data().createdAt?.toMillis?.() || 0;
-            return ta - tb;
+            return commentsSortOrder === 'asc' ? ta - tb : tb - ta;
         });
 
         for (const doc of sortedDocs) {
@@ -2819,19 +2986,13 @@ async function doRenderComments(lessonId, snap) {
                     ? `onclick="viewUserProfile('${r.email}','${(r.displayName||'').replace(/'/g,"\\'")}','${(r.avatar||'').replace(/'/g,"\\'")}');" style="cursor:pointer;"`
                     : '';
 
-                const quoteBox = (r.replyToName && r.replyToText)
-                    ? `<div style="border-right:3px solid #c5a059;background:rgba(197,160,89,0.07);border-radius:8px;padding:5px 9px;margin-bottom:5px;max-width:100%;">
-                            <span style="color:#c5a059;font-family:'Cairo',sans-serif;font-size:10px;font-weight:900;display:block;margin-bottom:1px;">
-                                <i class="fas fa-reply" style="font-size:9px;margin-left:3px;"></i>${r.replyToName}
-                            </span>
-                            <span style="color:rgba(255,255,255,0.4);font-family:'Cairo',sans-serif;font-size:10px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">
-                                ${r.replyToText}
-                            </span>
-                       </div>`
+                // عرض اسم الشخص المردود عليه بشكل بسيط: name » targetName
+                const replyToTag = r.replyToName
+                    ? `<span style="color:rgba(197,160,89,0.65);font-family:'Cairo',sans-serif;font-size:9px;font-weight:700;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;">» ${r.replyToName}</span>`
                     : '';
 
-                const escapedRName = (r.displayName||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-                const escapedRText = (r.text||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').substring(0,80);
+                const escapedRName = (r.displayName||'').replace(/\r?\n/g,' ').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+                const escapedRText = (r.text||'').substring(0,80).replace(/\r?\n/g,' ').replace(/'/g,"\\'").replace(/"/g,'&quot;');
                 const replyName = (rIsMe && myCurrentName) ? myCurrentName : (r.displayName || 'مجهول');
                 repliesArr.push(`
                 <div style="display:flex;gap:8px;padding:9px 0 9px 0;border-top:1px solid rgba(255,255,255,0.04);margin-top:4px;">
@@ -2840,12 +3001,12 @@ async function doRenderComments(lessonId, snap) {
                          style="width:28px;height:28px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.08);margin-top:2px;"
                          onerror="this.onerror=null;this.src=''">
                     <div style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;">
                             <span ${rNameClick} style="color:${rIsMe?'#c5a059':'rgba(255,255,255,0.9)'};font-family:'Cairo',sans-serif;font-weight:900;font-size:11px;">${replyName}</span>
+                            ${replyToTag}
                             ${rIsMe ? '<span style="background:rgba(197,160,89,0.15);color:#c5a059;font-size:9px;padding:1px 5px;border-radius:10px;font-family:Cairo,sans-serif;">أنت</span>' : ''}
                             <span style="color:rgba(255,255,255,0.2);font-size:9px;font-family:Cairo,sans-serif;margin-right:auto;">${rTime}</span>
                         </div>
-                        ${quoteBox}
                         <p style="color:rgba(255,255,255,0.78);font-family:'Cairo',sans-serif;font-size:11px;margin:0 0 5px;line-height:1.55;">${linkifyText(r.text)}</p>
                         <button onclick="startReply('${doc.id}','${escapedRName}','${escapedRText}','${rDoc.id}')"
                             style="background:none;border:none;color:rgba(197,160,89,0.5);font-family:'Cairo',sans-serif;font-size:10px;font-weight:700;cursor:pointer;padding:0;display:flex;align-items:center;gap:3px;">
@@ -2875,8 +3036,8 @@ async function doRenderComments(lessonId, snap) {
                     </button>
                 </div>` : '';
 
-            const escapedDName = (d.displayName||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-            const escapedDText = (d.text||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').substring(0,80);
+            const escapedDName = (d.displayName||'').replace(/\r?\n/g,' ').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            const escapedDText = (d.text||'').substring(0,80).replace(/\r?\n/g,' ').replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
             // خلفية مميزة للتعليق المثبّت
             const pinnedBg = isPinned

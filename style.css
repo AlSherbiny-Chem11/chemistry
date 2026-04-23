@@ -1567,3 +1567,49 @@ body {
         border-radius: 10px !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════
+   Video Player Modal — انيميشن دخول/خروج احترافي
+   ═══════════════════════════════════════════════════ */
+
+/* الخلفية تتلاشى بسلاسة مع المحتوى */
+#video-player-modal {
+    transition: background-color 0.32s ease;
+    will-change: background-color;
+}
+
+/* المحتوى الداخلي — slide up عند الدخول */
+.vpm-inner.vpm-enter {
+    animation: vpm-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* slide down عند الخروج */
+.vpm-inner.vpm-exit {
+    animation: vpm-down 0.28s cubic-bezier(0.55, 0, 0.75, 0.45) both;
+    pointer-events: none;
+}
+
+@keyframes vpm-up {
+    0%   { opacity: 0; transform: translateY(58px) scale(0.982); }
+    100% { opacity: 1; transform: translateY(0)    scale(1);     }
+}
+@keyframes vpm-down {
+    0%   { opacity: 1; transform: translateY(0)    scale(1);     }
+    100% { opacity: 0; transform: translateY(42px) scale(0.982); }
+}
+
+/* زرار الإغلاق — يظهر بعد لحظة من المحتوى */
+.vpm-close-btn {
+    opacity: 0 !important;
+    transition: background 0.2s ease, opacity 0.22s ease !important;
+}
+.vpm-close-btn.vpm-btn-visible {
+    opacity: 1 !important;
+}
+
+/* إلغاء animate.css القديم على video-container بشكل كامل */
+.video-container.animate__animated,
+.video-container.animate__zoomIn {
+    animation: none !important;
+    transform: none !important;
+}

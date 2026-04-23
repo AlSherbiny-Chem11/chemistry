@@ -573,23 +573,24 @@
 
     <!-- زرار الإغلاق الثابت - يظهر دائماً بغض النظر عن الـ scroll أو الـ safe area -->
     <button onclick="closePlayer(); event.stopPropagation();"
+        class="vpm-close-btn"
         style="position:sticky; top:calc(8px + env(safe-area-inset-top, 0px)); left:calc(8px + env(safe-area-inset-left, 0px));
                float:left; z-index:100; margin:8px;
                background:rgba(15,15,25,0.92); border:1px solid rgba(255,255,255,0.15);
                backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
                color:white; width:42px; height:42px; border-radius:50%; font-size:22px;
                cursor:pointer; display:flex; align-items:center; justify-content:center;
-               flex-shrink:0; transition:background 0.2s; box-shadow:0 4px 15px rgba(0,0,0,0.5);"
+               flex-shrink:0; box-shadow:0 4px 15px rgba(0,0,0,0.5);"
         onmouseover="this.style.background='rgba(239,68,68,0.5)'"
         onmouseout="this.style.background='rgba(15,15,25,0.92)'">&times;</button>
 
-    <div style="width:100%; max-width:1100px; margin:0 auto; padding:0 12px 80px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box; clear:both;" onclick="event.stopPropagation()">
+    <div class="vpm-inner" style="width:100%; max-width:1100px; margin:0 auto; padding:0 12px 80px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box; clear:both;" onclick="event.stopPropagation()">
 
         <!-- عنوان المحتوى -->
         <h3 id="video-title-display" style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(13px,3vw,18px); margin:0; line-height:1.4; padding:4px 0 8px;"></h3>
 
         <!-- الإطار (فيديو أو صورة) -->
-        <div class="video-container animate__animated animate__zoomIn" style="border-radius:16px; overflow:hidden; position:relative;">
+        <div class="video-container" style="border-radius:16px; overflow:hidden; position:relative;">
             <iframe id="main-video-frame" src="" frameborder="0"
                 allow="autoplay; fullscreen; picture-in-picture;"
                 allowfullscreen webkitallowfullscreen mozallowfullscreen
@@ -647,6 +648,29 @@
                 <i class="fas fa-comments" style="color:#c5a059; font-size:12px;"></i>
                 <span style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:12px;">التعليقات</span>
                 <span id="comments-count" style="background:rgba(197,160,89,0.12); color:#c5a059; border-radius:30px; padding:1px 8px; font-size:10px; font-family:'Cairo',sans-serif; font-weight:700;">0</span>
+                <!-- زرار ترتيب التعليقات -->
+                <div style="position:relative; margin-right:auto;">
+                    <button id="comment-sort-btn" onclick="toggleCommentSort(event)" title="الأحدث أولاً"
+                        style="background:none; border:none; color:rgba(255,255,255,0.35); cursor:pointer; font-size:13px; padding:3px 6px; border-radius:7px; line-height:1; transition:color 0.2s;"
+                        onmouseover="this.style.color='rgba(197,160,89,0.7)'" onmouseout="_updateCommentSortBtn()">
+                        <i class="fas fa-sort-amount-down"></i>
+                    </button>
+                    <div id="comment-sort-menu"
+                        style="display:none; position:absolute; top:100%; left:0; z-index:9999; background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:5px; min-width:150px; box-shadow:0 12px 32px rgba(0,0,0,0.6); white-space:nowrap; direction:rtl;">
+                        <button onclick="applyCommentSort('desc')"
+                            style="width:100%; background:none; border:none; color:rgba(255,255,255,0.8); font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; padding:8px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+                            <i id="cmt-sort-desc-check" class="fas fa-check" style="color:#c5a059; font-size:10px;"></i>
+                            <span>الأحدث أولاً</span>
+                        </button>
+                        <button onclick="applyCommentSort('asc')"
+                            style="width:100%; background:none; border:none; color:rgba(255,255,255,0.8); font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; padding:8px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">
+                            <i id="cmt-sort-asc-check" class="fas fa-check" style="color:#c5a059; font-size:10px; display:none;"></i>
+                            <span>الأقدم أولاً</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:9px; align-items:flex-start;">
                 <img id="comment-my-avatar" src="" referrerpolicy="no-referrer"
