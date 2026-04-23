@@ -552,17 +552,18 @@
         <h3 id="video-title-display" style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(13px,3vw,18px); margin:0; line-height:1.4; padding:4px 0 8px;"></h3>
 
         <!-- الإطار (فيديو أو صورة) -->
-        <div class="video-container animate__animated animate__zoomIn" style="border-radius:16px; overflow:hidden;">
+        <div class="video-container animate__animated animate__zoomIn" style="border-radius:16px; overflow:hidden; position:relative;">
             <iframe id="main-video-frame" src="" frameborder="0"
                 allow="autoplay; fullscreen; picture-in-picture;"
-                allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
+                allowfullscreen webkitallowfullscreen mozallowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
 
         <!-- شريط التقييم -->
-        <div style="background:#0f172a; border:1px solid rgba(197,160,89,0.15); border-radius:16px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div style="background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(8,12,22,0.98)); border:1px solid rgba(197,160,89,0.14); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; backdrop-filter:blur(8px);">
             <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                 <div style="display:flex; flex-direction:column; gap:4px;">
-                    <span style="color:rgba(255,255,255,0.4); font-family:'Cairo',sans-serif; font-size:10px; font-weight:700;">قيّم هذا المحتوى</span>
+                    <span style="color:rgba(255,255,255,0.35); font-family:'Cairo',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.04em;">قيّم هذا المحتوى</span>
                     <div id="modal-stars" style="display:flex; gap:5px;">
                         <i class="fas fa-star modal-star" data-val="1" style="font-size:22px; color:#374151; cursor:pointer; transition:all 0.15s;"></i>
                         <i class="fas fa-star modal-star" data-val="2" style="font-size:22px; color:#374151; cursor:pointer; transition:all 0.15s;"></i>
@@ -571,30 +572,30 @@
                         <i class="fas fa-star modal-star" data-val="5" style="font-size:22px; color:#374151; cursor:pointer; transition:all 0.15s;"></i>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px; background:rgba(197,160,89,0.1); border:1px solid rgba(197,160,89,0.25); border-radius:30px; padding:5px 12px;">
-                    <i class="fas fa-star" style="color:#c5a059; font-size:12px;"></i>
-                    <span id="modal-avg-val" style="color:#c5a059; font-weight:900; font-family:'Cairo',sans-serif; font-size:15px;">-</span>
-                    <span style="color:rgba(255,255,255,0.3); font-size:10px; font-family:'Cairo',sans-serif;">/ 5</span>
+                <div style="display:flex; align-items:center; gap:6px; background:rgba(197,160,89,0.08); border:1px solid rgba(197,160,89,0.2); border-radius:30px; padding:4px 11px;">
+                    <i class="fas fa-star" style="color:#c5a059; font-size:11px;"></i>
+                    <span id="modal-avg-val" style="color:#c5a059; font-weight:900; font-family:'Cairo',sans-serif; font-size:14px;">-</span>
+                    <span style="color:rgba(255,255,255,0.25); font-size:10px; font-family:'Cairo',sans-serif;">/ 5</span>
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="display:flex; align-items:center; gap:5px; color:rgba(255,255,255,0.4); font-family:'Cairo',sans-serif; font-size:11px;">
-                    <i class="fas fa-users" style="color:#c5a059;"></i>
+                <div style="display:flex; align-items:center; gap:5px; color:rgba(255,255,255,0.35); font-family:'Cairo',sans-serif; font-size:11px;">
+                    <i class="fas fa-users" style="color:rgba(197,160,89,0.6);"></i>
                     <span id="modal-raters-count">0</span>
                     <span>قيّموا</span>
                 </div>
                 <button onclick="toggleRatingsPanel()" id="ratings-toggle-btn"
-                    style="background:rgba(197,160,89,0.25); border:1px solid rgba(197,160,89,0.2); color:#c5a059; border-radius:20px; padding:5px 12px; font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-                    <i class="fas fa-list-ul" style="margin-left:4px;"></i> إخفاء التفاصيل
+                    style="display:none; background:rgba(197,160,89,0.25); border:1px solid rgba(197,160,89,0.2); color:#c5a059; border-radius:20px; padding:5px 12px; font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                    <i class="fas fa-list-ul" style="margin-left:4px;"></i> التفاصيل
                 </button>
             </div>
         </div>
 
-        <!-- لوحة تفاصيل التقييمات -->
-        <div id="ratings-panel" style="background:#0f172a; border:1px solid rgba(197,160,89,0.12); border-radius:16px; overflow:hidden;">
-            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-star" style="color:#c5a059; font-size:13px;"></i>
-                <span style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:13px;">تقييمات المتعلمين</span>
+        <!-- لوحة تفاصيل التقييمات — للمطوّر فقط -->
+        <div id="ratings-panel" style="display:none; background:#0f172a; border:1px solid rgba(197,160,89,0.12); border-radius:16px; overflow:hidden;">
+            <div style="padding:11px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-star" style="color:#c5a059; font-size:12px;"></i>
+                <span style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:12px;">تقييمات المتعلمين</span>
             </div>
             <div id="ratings-details-list" style="max-height:200px; overflow-y:auto; padding:6px 0;">
                 <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.25); font-family:'Cairo',sans-serif; font-size:12px;">
@@ -604,40 +605,42 @@
         </div>
 
         <!-- قسم التعليقات -->
-        <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden;">
-            <div style="padding:13px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-comments" style="color:#c5a059;"></i>
-                <span style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:13px;">التعليقات</span>
-                <span id="comments-count" style="background:rgba(197,160,89,0.15); color:#c5a059; border-radius:30px; padding:1px 9px; font-size:11px; font-family:'Cairo',sans-serif; font-weight:700;">0</span>
+        <div style="background:linear-gradient(160deg,rgba(15,23,42,0.95),rgba(8,12,22,0.98)); border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden; backdrop-filter:blur(8px);">
+            <div style="padding:11px 16px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-comments" style="color:#c5a059; font-size:12px;"></i>
+                <span style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:12px;">التعليقات</span>
+                <span id="comments-count" style="background:rgba(197,160,89,0.12); color:#c5a059; border-radius:30px; padding:1px 8px; font-size:10px; font-family:'Cairo',sans-serif; font-weight:700;">0</span>
             </div>
-            <div style="padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:10px; align-items:flex-start;">
+            <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:9px; align-items:flex-start;">
                 <img id="comment-my-avatar" src="" referrerpolicy="no-referrer"
-                     style="width:34px; height:34px; border-radius:10px; border:1px solid rgba(197,160,89,0.35); object-fit:cover; flex-shrink:0; margin-top:2px;"
+                     style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(197,160,89,0.28); object-fit:cover; flex-shrink:0; margin-top:2px;"
                      onerror="this.style.display='none'">
-                <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
-                    <div id="reply-indicator" style="display:none; flex-direction:column; gap:3px; background:rgba(197,160,89,0.08); border:1px solid rgba(197,160,89,0.25); border-radius:10px; padding:7px 10px; position:relative;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:7px;">
+                    <div id="reply-indicator" style="display:none; flex-direction:column; gap:3px; background:rgba(197,160,89,0.07); border:1px solid rgba(197,160,89,0.22); border-radius:9px; padding:6px 9px; position:relative;">
                         <div style="display:flex; align-items:center; justify-content:space-between;">
-                            <span style="color:#c5a059; font-family:'Cairo',sans-serif; font-size:11px; font-weight:900; display:flex; align-items:center; gap:5px;">
+                            <span style="color:#c5a059; font-family:'Cairo',sans-serif; font-size:10px; font-weight:900; display:flex; align-items:center; gap:4px;">
                                 <i class="fas fa-reply" style="font-size:9px;"></i> ردك على: <span id="reply-to-name" style="color:#edd3a1;"></span>
                             </span>
-                            <button onclick="cancelReply()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:16px;padding:0;line-height:1;">&times;</button>
+                            <button onclick="cancelReply()" style="background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;font-size:15px;padding:0;line-height:1;">&times;</button>
                         </div>
-                        <span id="reply-to-snippet" style="display:none; color:rgba(255,255,255,0.35); font-family:'Cairo',sans-serif; font-size:10px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical;"></span>
+                        <span id="reply-to-snippet" style="display:none; color:rgba(255,255,255,0.3); font-family:'Cairo',sans-serif; font-size:10px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical;"></span>
                     </div>
-                    <textarea id="comment-input" placeholder="شاركنا رأيك في المحتوى..." rows="2"
-                        style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; font-family:'Cairo',sans-serif; font-size:13px; padding:10px 12px; outline:none; resize:none; box-sizing:border-box; transition:border-color 0.2s; direction:rtl;"
-                        onfocus="this.style.borderColor='#c5a059'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+                    <textarea id="comment-input" placeholder="شاركنا رأيك أو اكتب كوداً..." rows="2"
+                        style="width:100%; background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.09); border-radius:10px; color:white; font-family:'Cairo',monospace; font-size:12px; padding:9px 11px; outline:none; resize:vertical; min-height:52px; max-height:140px; box-sizing:border-box; transition:border-color 0.2s, background 0.2s; direction:rtl; line-height:1.6;"
+                        onfocus="this.style.borderColor='rgba(197,160,89,0.55)';this.style.background='rgba(197,160,89,0.04)'"
+                        onblur="this.style.borderColor='rgba(255,255,255,0.09)';this.style.background='rgba(255,255,255,0.035)'"></textarea>
                     <div style="display:flex; justify-content:flex-end;">
                         <button onclick="submitComment()"
-                            style="background:linear-gradient(135deg,#c5a059,#edd3a1); color:#080c14; border:none; border-radius:10px; padding:8px 20px; font-family:'Cairo',sans-serif; font-weight:900; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            style="background:linear-gradient(135deg,#c5a059,#edd3a1); color:#080c14; border:none; border-radius:9px; padding:7px 18px; font-family:'Cairo',sans-serif; font-weight:900; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px; letter-spacing:0.02em; transition:opacity 0.2s;"
+                            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                             نشر <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <div id="comments-list" style="min-height:80px; max-height:350px; overflow-y:auto; padding:4px 0; scroll-behavior:smooth;">
+            <div id="comments-list" style="min-height:60px; max-height:320px; overflow-y:auto; padding:4px 0; scroll-behavior:smooth;">
                 <div style="text-align:center; padding:24px; color:rgba(255,255,255,0.2); font-family:'Cairo',sans-serif; font-size:12px;">
-                    <i class="fas fa-comment-dots" style="font-size:24px; margin-bottom:8px; display:block; opacity:0.4;"></i>
+                    <i class="fas fa-comment-dots" style="font-size:22px; margin-bottom:8px; display:block; opacity:0.4;"></i>
                     لا توجد تعليقات بعد، كن أول من يعلّق!
                 </div>
             </div>

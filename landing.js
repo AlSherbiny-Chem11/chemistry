@@ -8,58 +8,61 @@
 // ============================================
 function showLandingToast(msg) {
     const existing = document.getElementById('landing-toast');
-    if (existing) existing.remove();
-
-    if (!document.getElementById('landing-toast-style')) {
-        const style = document.createElement('style');
-        style.id = 'landing-toast-style';
-        style.textContent = `
-            @keyframes landingToastIn {
-                from { opacity:0; transform:translate(-50%, 16px); }
-                to   { opacity:1; transform:translate(-50%, 0); }
-            }
-        `;
-        document.head.appendChild(style);
+    if (existing) {
+        clearTimeout(existing._dismissTimer);
+        existing.remove();
     }
 
     const toast = document.createElement('div');
     toast.id = 'landing-toast';
     toast.style.cssText = [
         'position:fixed',
-        'bottom:28px',
+        'top:18px',
         'left:50%',
-        'transform:translateX(-50%)',
-        'background:linear-gradient(135deg,#1a1220,#1f1535)',
-        'border:1px solid rgba(239,68,68,0.45)',
+        'transform:translateX(-50%) translateY(-120%)',
+        'background:rgba(12,15,22,0.97)',
+        'border:1px solid rgba(239,68,68,0.38)',
         'color:white',
-        'padding:14px 22px',
-        'border-radius:18px',
+        'padding:9px 15px',
+        'border-radius:12px',
         'font-family:Cairo,sans-serif',
-        'font-size:13px',
+        'font-size:12px',
         'font-weight:700',
         'z-index:99999',
-        'max-width:88vw',
-        'box-shadow:0 8px 36px rgba(239,68,68,0.18),0 2px 8px rgba(0,0,0,0.5)',
+        'max-width:78vw',
+        'box-shadow:0 4px 20px rgba(0,0,0,0.55),0 0 0 1px rgba(239,68,68,0.08)',
         'direction:rtl',
         'display:flex',
         'align-items:center',
-        'gap:10px',
-        'animation:landingToastIn 0.3s cubic-bezier(0.16,1,0.3,1) both'
+        'gap:8px',
+        'opacity:0',
+        'transition:transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.28s ease',
+        'backdrop-filter:blur(14px)',
+        '-webkit-backdrop-filter:blur(14px)',
+        'pointer-events:none'
     ].join(';');
 
     toast.innerHTML = `
-        <i class="fas fa-exclamation-circle" style="color:#ef4444;font-size:18px;flex-shrink:0;"></i>
+        <i class="fas fa-exclamation-circle" style="color:#ef4444;font-size:13px;flex-shrink:0;"></i>
         <span style="white-space:normal;line-height:1.5;">${msg}</span>
     `;
 
     document.body.appendChild(toast);
 
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    // Animate in on next frame
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            toast.style.opacity = '1';
+        });
+    });
+
+    // Auto-dismiss after 4 seconds
+    toast._dismissTimer = setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(-120%)';
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-50%) translateY(10px)';
-        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 400);
-    }, 5000);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 320);
+    }, 4000);
 }
 
 function _resetLoginBtn() {

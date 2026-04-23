@@ -171,10 +171,15 @@ auth.onAuthStateChanged(async (user) => {
 
             // منطق تحميل الصف حسب الرتبة
             if (userRole === 'master') {
-                if (s_grade) {
-                    selectGrade(s_grade, "");
-                } else if (userData.lastGrade) {
-                    selectGrade(userData.lastGrade, "");
+                // التحقق من أن القسم المحفوظ لا يزال موجوداً
+                const savedGrade = s_grade || userData.lastGrade;
+                const sectionStillExists = savedGrade && allSections.some(s => s.id === savedGrade);
+
+                if (sectionStillExists) {
+                    selectGrade(savedGrade, "");
+                } else if (allSections.length > 0) {
+                    // القسم المحفوظ حُذف أو غير موجود — انتقل لأول قسم متاح
+                    selectGrade(allSections[0].id, "");
                 } else {
                     openGradePicker();
                 }
@@ -193,6 +198,9 @@ auth.onAuthStateChanged(async (user) => {
                     const lastGrade = s_grade || userData.lastGrade;
                     if (lastGrade && currentUserAllowedGrades.includes(lastGrade)) {
                         selectGrade(lastGrade, "");
+                    } else if (currentUserAllowedGrades.length > 0) {
+                        // آخر قسم كان مفتوحًا تم حذفه أو غير مسموح به — انتقل لأول قسم مسموح
+                        selectGrade(currentUserAllowedGrades[0], "");
                     } else {
                         openGradePicker(currentUserAllowedGrades);
                     }
@@ -1946,6 +1954,29 @@ function playVideo(url, lessonId, title) {
     const frame = document.getElementById('main-video-frame');
     frame.src = formatUrl(url);
 
+    // إزالة class الصور لو كانت موجودة من آخر مرة
+    const videoContainer = document.querySelector('.video-container');
+    if (videoContainer) {
+        videoContainer.classList.remove('image-view-mode');
+        // Google Drive Security Overlay — يغطي شريط "فتح في Drive" الأعلى
+        let driveOverlay = videoContainer.querySelector('.drive-security-overlay');
+        if (url.includes('drive.google.com')) {
+            if (!driveOverlay) {
+                driveOverlay = document.createElement('div');
+                driveOverlay.className = 'drive-security-overlay';
+                driveOverlay.title = '';
+                driveOverlay.onclick = (e) => e.preventDefault();
+                driveOverlay.ondblclick = (e) => e.preventDefault();
+                driveOverlay.oncontextmenu = (e) => e.preventDefault();
+                videoContainer.appendChild(driveOverlay);
+            }
+            driveOverlay.style.display = 'block';
+        } else {
+            if (driveOverlay) driveOverlay.style.display = 'none';
+        }
+    }
+    frame.classList.remove('image-frame');
+
     const modal = document.getElementById('video-player-modal');
     modal.style.display = 'block';
     modal.removeAttribute('data-content-type');
@@ -1962,20 +1993,26 @@ function playVideo(url, lessonId, title) {
         }
     }
 
-    // فتح لوحة التقييمات تلقائياً
+    // لوحة التقييمات: المطوّر فقط يرى تفاصيل التقييمات
     const ratingsPanel = document.getElementById('ratings-panel');
-    if (ratingsPanel) ratingsPanel.style.display = 'block';
     const ratingsBtn = document.getElementById('ratings-toggle-btn');
-    if (ratingsBtn) {
-        ratingsBtn.innerHTML = '<i class="fas fa-list-ul" style="margin-left:4px;"></i> إخفاء التفاصيل';
-        ratingsBtn.style.background = 'rgba(197,160,89,0.25)';
+    if (currentUserRole === 'master') {
+        if (ratingsPanel) ratingsPanel.style.display = 'block';
+        if (ratingsBtn) {
+            ratingsBtn.style.display = '';
+            ratingsBtn.innerHTML = '<i class="fas fa-list-ul" style="margin-left:4px;"></i> إخفاء التفاصيل';
+            ratingsBtn.style.background = 'rgba(197,160,89,0.25)';
+        }
+    } else {
+        if (ratingsPanel) ratingsPanel.style.display = 'none';
+        if (ratingsBtn) ratingsBtn.style.display = 'none';
     }
 
     modal.scrollTop = 0;
 
     initModalStars(lessonId);
     loadModalRating(lessonId);
-    loadRatingsDetails(lessonId);
+    if (currentUserRole === 'master') loadRatingsDetails(lessonId);
     listenComments(lessonId);
     pushStateForVideo();
     lockBodyScroll();
@@ -1990,6 +2027,16 @@ function openImageViewer(url, lessonId, title) {
 
     const frame = document.getElementById('main-video-frame');
     frame.src = formatUrl(url);
+    frame.classList.add('image-frame');
+
+    // تفعيل وضع الصور على الـ container
+    const videoContainer = document.querySelector('.video-container');
+    if (videoContainer) {
+        videoContainer.classList.add('image-view-mode');
+        // أخفِ overlay الـ Drive (الصور ليست فيديوهات Drive عادةً)
+        const driveOverlay = videoContainer.querySelector('.drive-security-overlay');
+        if (driveOverlay) driveOverlay.style.display = 'none';
+    }
 
     const modal = document.getElementById('video-player-modal');
     modal.style.display = 'block';
@@ -2007,20 +2054,26 @@ function openImageViewer(url, lessonId, title) {
         }
     }
 
-    // فتح لوحة التقييمات تلقائياً
+    // التقييمات: للمطوّر فقط — الصور لا تُقيَّم من المشتركين
     const ratingsPanel = document.getElementById('ratings-panel');
-    if (ratingsPanel) ratingsPanel.style.display = 'block';
     const ratingsBtn = document.getElementById('ratings-toggle-btn');
-    if (ratingsBtn) {
-        ratingsBtn.innerHTML = '<i class="fas fa-list-ul" style="margin-left:4px;"></i> إخفاء التفاصيل';
-        ratingsBtn.style.background = 'rgba(197,160,89,0.25)';
+    if (currentUserRole === 'master') {
+        if (ratingsPanel) ratingsPanel.style.display = 'block';
+        if (ratingsBtn) {
+            ratingsBtn.style.display = '';
+            ratingsBtn.innerHTML = '<i class="fas fa-list-ul" style="margin-left:4px;"></i> إخفاء التفاصيل';
+            ratingsBtn.style.background = 'rgba(197,160,89,0.25)';
+        }
+    } else {
+        if (ratingsPanel) ratingsPanel.style.display = 'none';
+        if (ratingsBtn) ratingsBtn.style.display = 'none';
     }
 
     modal.scrollTop = 0;
 
     initModalStars(lessonId);
     loadModalRating(lessonId);
-    loadRatingsDetails(lessonId);
+    if (currentUserRole === 'master') loadRatingsDetails(lessonId);
     listenComments(lessonId);
     pushStateForVideo();
     lockBodyScroll();
@@ -2036,6 +2089,16 @@ function closePlayer() {
     const modal = document.getElementById('video-player-modal');
     modal.style.display = 'none';
     modal.removeAttribute('data-content-type');
+
+    // إعادة ضبط classes الصور والـ Drive overlay
+    const videoContainer = document.querySelector('.video-container');
+    if (videoContainer) {
+        videoContainer.classList.remove('image-view-mode');
+        const driveOverlay = videoContainer.querySelector('.drive-security-overlay');
+        if (driveOverlay) driveOverlay.style.display = 'none';
+    }
+    const frame = document.getElementById('main-video-frame');
+    if (frame) frame.classList.remove('image-frame');
 
     const commentInput = document.getElementById('comment-input');
     if (commentInput) commentInput.value = '';
@@ -2343,6 +2406,7 @@ function initModalStars(lessonId) {
 }
 
 function toggleRatingsPanel() {
+    if (currentUserRole !== 'master') return; // المشتركون لا يرون تفاصيل التقييمات
     const panel = document.getElementById('ratings-panel');
     const btn = document.getElementById('ratings-toggle-btn');
     if (panel.style.display === 'none' || panel.style.display === '') {
@@ -2358,6 +2422,7 @@ function toggleRatingsPanel() {
 }
 
 async function loadRatingsDetails(lessonId) {
+    if (currentUserRole !== 'master') return; // المشتركون لا يرون تقييمات الآخرين
     const container = document.getElementById('ratings-details-list');
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-family:Cairo,sans-serif;font-size:12px;">جاري التحميل...</div>';
@@ -3348,23 +3413,189 @@ function formatTimeAgo(date) {
     return `منذ ${Math.floor(diff/31536000)} سنة`;
 }
 
-function showToast(msg, icon = 'success') {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top',
-        showConfirmButton: false,
-        timer: 2500,
-        timerProgressBar: true,
-        background: '#1f2937',
-        color: '#ffffff',
-        customClass: { container: 'swal-top-always' },
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
+// ============================================
+//  نظام Toast مخصص — Premium Dark Edition
+// ============================================
+(function() {
+    // إنشاء حاوية الـ toasts مرة واحدة
+    function _getToastContainer() {
+        let c = document.getElementById('_toast-container');
+        if (!c) {
+            c = document.createElement('div');
+            c.id = '_toast-container';
+            c.style.cssText = [
+                'position:fixed',
+                'top:16px',
+                'left:50%',
+                'transform:translateX(-50%)',
+                'z-index:999999',
+                'display:flex',
+                'flex-direction:column',
+                'align-items:center',
+                'gap:8px',
+                'pointer-events:none',
+                'width:max-content',
+                'max-width:92vw'
+            ].join(';');
+            document.body.appendChild(c);
         }
-    });
-    Toast.fire({ icon, title: msg });
-}
+        return c;
+    }
+
+    // إعدادات كل نوع
+    const _TOAST_TYPES = {
+        success: {
+            icon: 'fa-check',
+            accent: '#22c55e',
+            bg: 'rgba(22,35,22,0.97)',
+            border: 'rgba(34,197,94,0.28)',
+            glow: 'rgba(34,197,94,0.12)'
+        },
+        error: {
+            icon: 'fa-times',
+            accent: '#ef4444',
+            bg: 'rgba(35,14,14,0.97)',
+            border: 'rgba(239,68,68,0.28)',
+            glow: 'rgba(239,68,68,0.12)'
+        },
+        warning: {
+            icon: 'fa-exclamation',
+            accent: '#f59e0b',
+            bg: 'rgba(35,28,10,0.97)',
+            border: 'rgba(245,158,11,0.28)',
+            glow: 'rgba(245,158,11,0.12)'
+        },
+        info: {
+            icon: 'fa-info',
+            accent: '#60a5fa',
+            bg: 'rgba(14,22,36,0.97)',
+            border: 'rgba(96,165,250,0.28)',
+            glow: 'rgba(96,165,250,0.1)'
+        }
+    };
+
+    window.showToast = function(msg, type = 'success') {
+        const cfg = _TOAST_TYPES[type] || _TOAST_TYPES.success;
+        const container = _getToastContainer();
+        const DURATION = 2800;
+
+        const toast = document.createElement('div');
+        toast.style.cssText = [
+            'display:flex',
+            'align-items:center',
+            'gap:10px',
+            `background:${cfg.bg}`,
+            `border:1px solid ${cfg.border}`,
+            `box-shadow:0 4px 24px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)`,
+            'border-radius:12px',
+            'padding:9px 14px 9px 12px',
+            'pointer-events:auto',
+            'cursor:pointer',
+            'max-width:84vw',
+            'min-width:160px',
+            'opacity:0',
+            'transform:translateY(-14px) scale(0.95)',
+            'transition:opacity 0.28s cubic-bezier(0.16,1,0.3,1), transform 0.28s cubic-bezier(0.16,1,0.3,1)',
+            'backdrop-filter:blur(20px)',
+            '-webkit-backdrop-filter:blur(20px)',
+            'position:relative',
+            'overflow:hidden',
+            'direction:rtl'
+        ].join(';');
+
+        // خط الأكسنت الجانبي
+        const accentLine = document.createElement('div');
+        accentLine.style.cssText = [
+            'position:absolute',
+            'right:0', 'top:0', 'bottom:0',
+            'width:3px',
+            `background:${cfg.accent}`,
+            'border-radius:0 12px 12px 0',
+            'opacity:0.9'
+        ].join(';');
+        toast.appendChild(accentLine);
+
+        // أيقونة دائرية
+        const iconWrap = document.createElement('div');
+        iconWrap.style.cssText = [
+            'width:28px', 'height:28px',
+            'border-radius:8px',
+            `background:${cfg.glow}`,
+            `border:1px solid ${cfg.border}`,
+            'display:flex', 'align-items:center', 'justify-content:center',
+            'flex-shrink:0'
+        ].join(';');
+        iconWrap.innerHTML = `<i class="fas ${cfg.icon}" style="font-size:11px;color:${cfg.accent};"></i>`;
+        toast.appendChild(iconWrap);
+
+        // النص
+        const textEl = document.createElement('span');
+        textEl.style.cssText = [
+            'color:rgba(255,255,255,0.88)',
+            'font-family:Cairo,sans-serif',
+            'font-size:12px',
+            'font-weight:700',
+            'line-height:1.4',
+            'flex:1',
+            'padding-left:4px'
+        ].join(';');
+        textEl.textContent = msg;
+        toast.appendChild(textEl);
+
+        // شريط التقدم
+        const progressWrap = document.createElement('div');
+        progressWrap.style.cssText = [
+            'position:absolute',
+            'bottom:0', 'left:0', 'right:0',
+            'height:2px',
+            'background:rgba(255,255,255,0.05)',
+            'border-radius:0 0 12px 12px',
+            'overflow:hidden'
+        ].join(';');
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = [
+            'height:100%',
+            `background:${cfg.accent}`,
+            'width:100%',
+            'opacity:0.6',
+            `transition:width ${DURATION}ms linear`
+        ].join(';');
+        progressWrap.appendChild(progressBar);
+        toast.appendChild(progressWrap);
+
+        container.appendChild(toast);
+
+        // Dismiss function
+        let dismissed = false;
+        function dismiss() {
+            if (dismissed) return;
+            dismissed = true;
+            clearTimeout(timer);
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px) scale(0.94)';
+            toast.style.pointerEvents = 'none';
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 280);
+        }
+
+        // Click to dismiss
+        toast.addEventListener('click', dismiss);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0) scale(1)';
+                // بدء شريط التقدم
+                setTimeout(() => { progressBar.style.width = '0%'; }, 30);
+            });
+        });
+
+        // Auto dismiss
+        const timer = setTimeout(dismiss, DURATION);
+    };
+})();
 
 // ============================================
 //  حماية زرار الرجوع

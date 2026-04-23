@@ -1335,3 +1335,195 @@ body {
 #grade-picker {
     background: linear-gradient(160deg, #050810 0%, #0a0f1c 50%, #050810 100%) !important;
 }
+
+/* =========================================
+   إصلاحات شاملة — app fixes
+   ========================================= */
+
+/* ── 1. Drive Security Overlay ── */
+.drive-security-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 54px;           /* يغطي شريط أدوات Drive العلوي */
+    z-index: 50;
+    background: transparent;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+    display: none;
+}
+
+/* ── 2. وضع عرض الصور داخل iframe ── */
+.video-container.image-view-mode {
+    aspect-ratio: unset !important;
+    height: auto !important;
+    min-height: 52vmin;
+    max-height: 78vh;
+}
+#main-video-frame.image-frame {
+    width: 100%;
+    height: 62vmin;
+    min-height: 280px;
+    max-height: 74vh;
+}
+@media (max-width: 640px) {
+    .video-container.image-view-mode {
+        min-height: 56vw;
+        max-height: 70vh;
+    }
+    #main-video-frame.image-frame {
+        height: 58vw;
+        min-height: 220px;
+    }
+}
+
+/* ── 3. تحسين حاوية الفيديو — styling رقي ── */
+.video-container {
+    border: 1.5px solid rgba(197,160,89,0.3) !important;
+    box-shadow:
+        0 0 0 1px rgba(197,160,89,0.06) inset,
+        0 8px 40px rgba(0,0,0,0.65),
+        0 0 80px rgba(0,0,0,0.25) !important;
+    transition: border-color 0.3s ease;
+}
+.video-container:hover {
+    border-color: rgba(197,160,89,0.45) !important;
+}
+
+/* ── 4. Video player modal header — عنوان أنيق ── */
+#video-title-display {
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding: 6px 0 10px !important;
+}
+
+/* شريط التقييم — تصميم محسّن */
+#video-player-modal .ratings-bar-wrap {
+    background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(8,12,22,0.98));
+    border: 1px solid rgba(197,160,89,0.14);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── 5. منطقة التعليقات — تصميم احترافي أنيق ── */
+#comment-input {
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+    padding: 9px 11px !important;
+    border-radius: 10px !important;
+    min-height: 52px;
+    max-height: 140px;
+    resize: vertical;
+    font-family: 'Cairo', 'Space Mono', monospace;
+    background: rgba(255,255,255,0.035) !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    transition: border-color 0.2s, background 0.2s !important;
+}
+#comment-input:focus {
+    border-color: rgba(197,160,89,0.55) !important;
+    background: rgba(197,160,89,0.04) !important;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(197,160,89,0.07);
+}
+#comment-input::placeholder {
+    color: rgba(255,255,255,0.25);
+    font-size: 11px;
+}
+
+/* قسم التعليقات — الحاوية الرئيسية */
+#comments-list {
+    max-height: 320px !important;
+    min-height: 60px !important;
+}
+
+/* حاوية إدخال التعليق */
+.comment-input-wrap {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+}
+
+/* زرار إرسال التعليق */
+.comment-submit-btn {
+    padding: 7px 16px !important;
+    font-size: 11px !important;
+    border-radius: 9px !important;
+    letter-spacing: 0.02em;
+}
+
+/* أفاتار التعليق */
+#comment-my-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    margin-top: 1px !important;
+}
+
+/* مؤشر الرد */
+#reply-indicator {
+    padding: 6px 9px !important;
+    border-radius: 9px !important;
+    font-size: 11px;
+}
+
+/* ── Mobile adjustments ── */
+@media (max-width: 640px) {
+    #comment-input {
+        font-size: 11px !important;
+        padding: 8px 10px !important;
+        min-height: 44px;
+    }
+    .video-container {
+        border-radius: 12px !important;
+    }
+}
+
+
+/* =========================================
+   Toast System — Premium Dark Edition
+   ========================================= */
+
+/* حاوية الـ Toasts */
+#_toast-container {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    width: max-content;
+    max-width: 92vw;
+}
+
+/* كارت الـ Toast الأساسي */
+#_toast-container > div {
+    /* الـ styles الأساسية تأتي من JS، هنا override للتأكيد */
+    font-family: 'Cairo', sans-serif !important;
+}
+
+/* على الموبايل: عرض أوسع قليلاً */
+@media (max-width: 480px) {
+    #_toast-container {
+        top: 12px;
+        max-width: 96vw;
+    }
+    #_toast-container > div {
+        min-width: 140px !important;
+        padding: 8px 12px 8px 10px !important;
+        font-size: 11px !important;
+    }
+}
+
+/* إخفاء الـ Swal toast القديم إذا بقي */
+.swal-top-always { display: none !important; }
