@@ -1613,3 +1613,118 @@ body {
     animation: none !important;
     transform: none !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Video Player — YouTube-style Desktop & iPad Layout
+   الموبايل (≤767px): لا تغيير — عمود واحد كما هو
+   الآيباد  (768px – 1023px): فيديو مع سايد بار صغير
+   الكمبيوتر (≥1024px): عمودان — فيديو + سايد بار جانبي
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── الحاوية الخارجية: عمود واحد على الموبايل ── */
+.vpm-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.vpm-main    { width: 100%; }
+.vpm-sidebar { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+
+/* ════════════════════════
+   آيباد (768px – 1023px)
+   الفيديو أصغر + ظهور خفيف للمحتوى تحته
+   ════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+    /* تقليل padding العلوي لمنح مساحة أكبر للفيديو */
+    .vpm-inner {
+        padding-top: 52px !important;
+        padding-bottom: 30px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    /* الفيديو بارتفاع محدود — يترك مساحة تحته */
+    .video-container {
+        max-height: 52vh !important;
+    }
+
+    /* الصور أيضاً */
+    .video-container.image-view-mode {
+        max-height: 48vh !important;
+    }
+    #main-video-frame.image-frame {
+        max-height: 46vh !important;
+    }
+}
+
+/* ════════════════════════
+   كمبيوتر (≥1024px)
+   عمودان: فيديو يسار + سايد بار يمين
+   ════════════════════════ */
+@media (min-width: 1024px) {
+
+    .vpm-inner {
+        padding-top: 54px !important;
+        padding-bottom: 32px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    /* layout الأساسي: صف — فيديو 63% + سايد بار 37% */
+    .vpm-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    /* العمود الرئيسي (الفيديو) */
+    .vpm-main {
+        flex: 0 0 63%;
+        min-width: 0;
+        position: sticky;
+        top: 54px;       /* يثبت أسفل شريط الإغلاق */
+    }
+
+    /* السايد بار */
+    .vpm-sidebar {
+        flex: 0 0 calc(37% - 18px);
+        min-width: 0;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 2px; /* تجنب قطع الـ border */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(197,160,89,0.25) transparent;
+    }
+
+    /* scrollbar للسايد بار — WebKit */
+    .vpm-sidebar::-webkit-scrollbar        { width: 4px; }
+    .vpm-sidebar::-webkit-scrollbar-track  { background: transparent; }
+    .vpm-sidebar::-webkit-scrollbar-thumb  { background: rgba(197,160,89,0.25); border-radius: 10px; }
+
+    /* قائمة التعليقات تمتد لملء السايد بار بدل max-height ثابت */
+    #comments-list {
+        max-height: calc(100vh - 480px) !important;
+        min-height: 120px !important;
+    }
+
+    /* عنوان الفيديو أكبر قليلاً */
+    #video-title-display {
+        font-size: clamp(14px, 1.5vw, 20px) !important;
+    }
+}
+
+/* ════════════════════════
+   شاشات كبيرة جداً (≥1400px)
+   ════════════════════════ */
+@media (min-width: 1400px) {
+    .vpm-main {
+        flex: 0 0 66%;
+    }
+    .vpm-sidebar {
+        flex: 0 0 calc(34% - 18px);
+    }
+}

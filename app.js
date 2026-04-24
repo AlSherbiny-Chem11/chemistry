@@ -2812,7 +2812,27 @@ async function pinComment(lessonId, commentId, currentlyPinned) {
 // ── إغلاق قوائم الثلاث نقاط عند الضغط خارجها ──
 document.addEventListener('click', () => {
     document.querySelectorAll('.cmt-dots-menu').forEach(m => m.style.display = 'none');
+    _closeCommentSortMenu();
 });
+
+// ── معالج النقر داخل مشغّل الفيديو ──
+// يمنع إغلاق المشغّل ويغلق القوائم العائمة
+function _vpmInnerClick(e) {
+    e.stopPropagation(); // منع إغلاق المشغّل
+
+    const sortBtn  = document.getElementById('comment-sort-btn');
+    const sortMenu = document.getElementById('comment-sort-menu');
+
+    // إغلاق قائمة الترتيب لو النقر خارجها وخارج زرارها
+    if (sortMenu && !sortBtn?.contains(e.target) && !sortMenu.contains(e.target)) {
+        sortMenu.style.display = 'none';
+    }
+
+    // إغلاق قوائم الثلاث نقاط لو النقر خارجها وخارج أزرارها
+    document.querySelectorAll('.cmt-dots-menu').forEach(m => {
+        if (!m.contains(e.target)) m.style.display = 'none';
+    });
+}
 
 // *** إصلاح Bug 2: نظام الإصدارات بدلاً من الـ lock ***
 // كل مرة بنطلب render جديد، رقم الإصدار بيزيد
@@ -2834,12 +2854,10 @@ function toggleCommentSort(e) {
     const menu = document.getElementById('comment-sort-menu');
     if (!menu) return;
     const isOpen = menu.style.display === 'block';
+    // إغلاق قوائم الثلاث نقاط الأخرى أولاً
+    document.querySelectorAll('.cmt-dots-menu').forEach(m => m.style.display = 'none');
+    // تبديل قائمة الترتيب
     menu.style.display = isOpen ? 'none' : 'block';
-    if (!isOpen) {
-        setTimeout(() => {
-            document.addEventListener('click', _closeCommentSortMenu, { once: true });
-        }, 10);
-    }
 }
 
 function _closeCommentSortMenu() {

@@ -78,6 +78,66 @@
             font-family: 'Cairo', sans-serif;
             text-align: center;
         }
+
+        /* ====== إصلاح مشغّل الفيديو في وضع ملء الشاشه على الهواتف ====== */
+        #video-player-modal {
+            box-sizing: border-box;
+        }
+
+        /* زرار الإغلاق — ثابت دائماً بغض النظر عن safe area */
+        .vpm-close-btn {
+            position: fixed !important;
+            top: max(8px, env(safe-area-inset-top, 8px)) !important;
+            left: max(8px, env(safe-area-inset-left, 8px)) !important;
+            z-index: 100 !important;
+            float: none !important;
+            margin: 0 !important;
+        }
+
+        /* في الشاشه الأفقية على الهاتف */
+        @media screen and (orientation: landscape) and (max-height: 600px) {
+            #video-player-modal {
+                padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+                padding-left: max(8px, env(safe-area-inset-left, 0px)) !important;
+                padding-right: max(8px, env(safe-area-inset-right, 0px)) !important;
+                padding-bottom: 0 !important;
+            }
+            .vpm-inner {
+                padding: 0 8px 20px !important;
+            }
+            .video-container {
+                max-height: 65vh !important;
+            }
+        }
+
+        /* ====== منع لقطات الشاشه (deterrent — لا يمكن منعها بالكامل في المتصفح) ====== */
+        /* إخفاء المحتوى عند الطباعة */
+        @media print {
+            #video-player-modal,
+            .video-container,
+            #main-video-frame {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        }
+        /* طبقة حماية شفافة فوق الفيديو */
+        .video-protect-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        /* Hardware compositing — يجعل التقاط الشاشه أصعب على بعض الأجهزة */
+        .video-container iframe,
+        #main-video-frame {
+            -webkit-user-select: none;
+            user-select: none;
+            will-change: transform;
+            transform: translateZ(0);
+        }
     </style>
 </head>
 <body>
@@ -105,7 +165,7 @@
     <div class="container mx-auto flex justify-between items-center h-12">
         <div class="relative">
             <div class="flex items-center gap-2 cursor-pointer group bg-white/5 hover:bg-white/10 p-1 pr-3 rounded-2xl border border-white/5 transition-all" onclick="toggleMenu()">
-                <span id="user-first-name" class="font-black text-white text-[12px]"></span>
+                <span id="user-first-name" class="font-black text-white text-[12px] max-w-[70px] truncate hidden sm:block"></span>
                 <img id="user-avatar" class="w-9 h-9 rounded-xl border border-[#c5a059]/50 object-cover" src="" alt="">
                 <div class="w-7 h-7 rounded-full bg-[#c5a059] flex items-center justify-center relative overflow-hidden shimmer-container">
                     <i class="fas fa-chevron-down text-[10px] text-black relative z-10"></i>
@@ -204,22 +264,22 @@
                     <button onclick="applySortOrder('desc')"
                         style="width:100%;background:none;border:none;color:white;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.15s;"
                         onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='none'">
-                        <i id="sort-desc-check" class="fas fa-check" style="color:#c5a059;font-size:10px;"></i>
+                        <i id="sort-desc-check" class="fas fa-check" style="color:#c5a059;font-size:10px;display:none;"></i>
                         <i class="fas fa-arrow-down" style="color:rgba(197,160,89,0.6);font-size:11px;"></i>
                         الأحدث أولاً
                     </button>
                     <button onclick="applySortOrder('asc')"
                         style="width:100%;background:none;border:none;color:white;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.15s;"
                         onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='none'">
-                        <i id="sort-asc-check" class="fas fa-check" style="color:#c5a059;font-size:10px;display:none;"></i>
+                        <i id="sort-asc-check" class="fas fa-check" style="color:#c5a059;font-size:10px;"></i>
                         <i class="fas fa-arrow-up" style="color:rgba(197,160,89,0.6);font-size:11px;"></i>
                         الأقدم أولاً
                     </button>
                 </div>
             </div>
 
-            <!-- عنوان المنصة -->
-            <div class="flex flex-col text-left">
+            <!-- عنوان المنصة — مخفي على الهاتف -->
+            <div class="hidden md:flex flex-col text-left">
                 <h2 class="font-black text-xs md:text-base italic leading-tight" style="color:#c5a059;letter-spacing:0.01em;">
                     منصة Salman للبرمجة
                 </h2>
@@ -593,12 +653,10 @@
      padding-left: env(safe-area-inset-left, 0px);
      padding-right: env(safe-area-inset-right, 0px);" onclick="closePlayer()">
 
-    <!-- زرار الإغلاق الثابت - يظهر دائماً بغض النظر عن الـ scroll أو الـ safe area -->
+    <!-- زرار الإغلاق الثابت -->
     <button onclick="closePlayer(); event.stopPropagation();"
         class="vpm-close-btn"
-        style="position:sticky; top:calc(8px + env(safe-area-inset-top, 0px)); left:calc(8px + env(safe-area-inset-left, 0px));
-               float:left; z-index:100; margin:8px;
-               background:rgba(15,15,25,0.92); border:1px solid rgba(255,255,255,0.15);
+        style="background:rgba(15,15,25,0.92); border:1px solid rgba(255,255,255,0.15);
                backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
                color:white; width:42px; height:42px; border-radius:50%; font-size:22px;
                cursor:pointer; display:flex; align-items:center; justify-content:center;
@@ -606,18 +664,28 @@
         onmouseover="this.style.background='rgba(239,68,68,0.5)'"
         onmouseout="this.style.background='rgba(15,15,25,0.92)'">&times;</button>
 
-    <div class="vpm-inner" style="width:100%; max-width:1100px; margin:0 auto; padding:0 12px 80px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box; clear:both;" onclick="event.stopPropagation()">
+    <div class="vpm-inner" style="width:100%; max-width:1280px; margin:0 auto; padding:58px 12px 40px; display:flex; flex-direction:column; gap:0; box-sizing:border-box; clear:both;" onclick="_vpmInnerClick(event)">
 
-        <!-- عنوان المحتوى -->
-        <h3 id="video-title-display" style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(13px,3vw,18px); margin:0; line-height:1.4; padding:4px 0 8px;"></h3>
+        <!-- ── layout wrapper: فيديو يسار + سايد بار يمين على الكمبيوتر ── -->
+        <div class="vpm-layout">
 
-        <!-- الإطار (فيديو أو صورة) -->
-        <div class="video-container" style="border-radius:16px; overflow:hidden; position:relative;">
-            <iframe id="main-video-frame" src="" frameborder="0"
-                allow="autoplay; fullscreen; picture-in-picture;"
-                allowfullscreen webkitallowfullscreen mozallowfullscreen
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
+            <!-- ── العمود الرئيسي: العنوان + الفيديو ── -->
+            <div class="vpm-main">
+                <!-- عنوان المحتوى -->
+                <h3 id="video-title-display" style="color:white; font-family:'Cairo',sans-serif; font-weight:900; font-size:clamp(13px,3vw,18px); margin:0; line-height:1.4; padding:4px 0 10px;"></h3>
+
+                <!-- الإطار (فيديو أو صورة) -->
+                <div class="video-container" style="border-radius:16px; overflow:hidden; position:relative;" oncontextmenu="return false;">
+                    <div class="video-protect-layer"></div>
+                    <iframe id="main-video-frame" src="" frameborder="0"
+                        allow="autoplay; fullscreen; picture-in-picture;"
+                        allowfullscreen webkitallowfullscreen mozallowfullscreen
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div><!-- end vpm-main -->
+
+            <!-- ── السايد بار: التقييم + التعليقات ── -->
+            <div class="vpm-sidebar">
 
         <!-- شريط التقييم -->
         <div style="background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(8,12,22,0.98)); border:1px solid rgba(197,160,89,0.14); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; backdrop-filter:blur(8px);">
@@ -728,6 +796,10 @@
                 </div>
             </div>
         </div>
+            </div><!-- end vpm-sidebar -->
+
+        </div><!-- end vpm-layout -->
+
     </div><!-- end inner content wrapper -->
 </div><!-- end video-player-modal -->
 

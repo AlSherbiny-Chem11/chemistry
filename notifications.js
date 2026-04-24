@@ -125,19 +125,20 @@ function openNotificationsPanel() {
     panel.style.display = 'flex';
     lockBodyScroll();
     _renderNotificationsPanel();
-
-    // تمييز الكل كمقروء بعد لحظة — للمشتركين فقط، المطوّر يحتفظ بحالة القراءة
-    setTimeout(() => {
-        const user = auth.currentUser;
-        if (user && currentUserRole !== 'master') {
-            _markAllVisibleRead(user.email.toLowerCase());
-        }
-    }, 600);
+    // ⚠️ لا نمييز كمقروء هنا — نمييز فقط عند الإغلاق
+    // حتى يتمكن المستخدم من قراءة الإشعار قبل أن يختفي (autoExpire)
 }
 
 function closeNotificationsPanel() {
     const panel = document.getElementById('notifications-panel');
     if (!panel) return;
+
+    // ✅ تمييز الكل كمقروء عند الإغلاق — للمشتركين فقط
+    const user = auth.currentUser;
+    if (user && currentUserRole !== 'master') {
+        _markAllVisibleRead(user.email.toLowerCase());
+    }
+
     _notifPanelOpen = false;
     panel.style.display = 'none';
     unlockBodyScroll();
@@ -486,10 +487,17 @@ async function sendNotification() {
     try {
         await db.collection('notifications').add(notifData);
         showToast('تم إرسال الإشعار ✅');
-        // إعادة تعيين النموذج
+
+        // ── إعادة تعيين النموذج بدون إغلاق اللوحة ──
         _notifCurrentTarget = 'all';
-        closeNotificationsPanel();
-        setTimeout(() => openNotificationsPanel(), 200);
+        const titleInput = document.getElementById('notif-title-input');
+        const bodyInput  = document.getElementById('notif-body-input');
+        const durSelect  = document.getElementById('notif-duration-select');
+        if (titleInput) titleInput.value = '';
+        if (bodyInput)  bodyInput.value  = '';
+        if (durSelect)  durSelect.value  = 'permanent';
+        // إعادة رسم اللوحة (الـ listener سيحدّثها تلقائياً عبر Firebase)
+
     } catch (e) {
         console.error('[Notifications] send error:', e);
         showToast('حدث خطأ في الإرسال', 'error');
@@ -932,6 +940,10 @@ document.addEventListener('click', function (e) {
     if (!_notifPanelOpen) return;
     const panel = document.getElementById('notifications-panel');
     if (!panel || panel.style.display === 'none') return;
+
+    // ── لا تغلق اللوحة لو Swal مفتوح ──
+    if (document.querySelector('.swal2-container:not(.swal2-toast-shown)')) return;
+
     const inner = panel.querySelector('#notif-panel-inner');
     if (!inner) return;
     const bellBtn = document.getElementById('notif-bell-btn');
