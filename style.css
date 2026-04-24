@@ -1485,6 +1485,75 @@ body {
     }
 }
 
+/* ═══════════════════════════════════════════
+   موبايل — تضغيط القوائم أسفل الفيديو
+   بحيث يحتل الفيديو مساحة بصرية أبرز
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+    /* تقليل الـ padding الكلي للـ modal */
+    .vpm-inner {
+        padding: 50px 8px 24px !important;
+    }
+
+    /* تقليل gap بين الـ sections */
+    .vpm-sidebar {
+        gap: 7px !important;
+    }
+
+    /* عنوان الفيديو أصغر ومضغوط */
+    #video-title-display {
+        font-size: 13px !important;
+        padding: 2px 0 7px !important;
+    }
+
+    /* شريط التقييم — padding أقل */
+    .ratings-bar-wrap {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+    }
+
+    /* النجوم أصغر على الموبايل */
+    .modal-star {
+        font-size: 17px !important;
+    }
+
+    /* header التعليقات */
+    .cmt-section-header {
+        padding: 8px 11px !important;
+    }
+
+    /* صندوق إدخال التعليق */
+    #video-player-modal [style*="padding:10px 12px"] {
+        padding: 7px 9px !important;
+    }
+
+    /* تقليل textarea ارتفاع على الموبايل */
+    #comment-input {
+        min-height: 40px !important;
+        max-height: 100px !important;
+        font-size: 11px !important;
+        padding: 7px 9px !important;
+    }
+
+    /* قائمة التعليقات — ارتفاع معقول */
+    #comments-list {
+        max-height: 220px !important;
+    }
+
+    /* لوحة التقييمات */
+    #ratings-details-list {
+        max-height: 150px !important;
+    }
+
+    /* زرار إغلاق الـ modal أصغر */
+    .vpm-close-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 18px !important;
+    }
+}
+
 
 /* =========================================
    Toast System — Premium Dark Edition
@@ -1533,9 +1602,13 @@ body {
    أدوات الترتيب والفلتر
    ========================================= */
 
-/* الـ dropdown — smart JS positioning يتولى الاتجاه، هنا فقط نضمن عدم تجاوز الشاشة */
-#sort-dropdown-menu {
-    max-width: calc(100vw - 12px);
+/* الـ dropdown على الموبايل — يظهر من اليمين */
+@media (max-width: 480px) {
+    #sort-dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+        min-width: 162px !important;
+    }
 }
 
 /* تأثير فتح الـ dropdown */
