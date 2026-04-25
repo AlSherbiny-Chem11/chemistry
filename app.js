@@ -1186,43 +1186,12 @@ function toggleSortDropdown(e) {
     e.stopPropagation();
     const menu = document.getElementById('sort-dropdown-menu');
     if (!menu) return;
-
-    if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
-
-    // ── smart positioning ──
-    const btn = document.getElementById('sort-order-btn');
-    // أظهر بدون visibility لقياس الحجم الفعلي
-    menu.style.visibility = 'hidden';
-    menu.style.display    = 'block';
-    menu.style.top = menu.style.bottom = menu.style.left = menu.style.right = '';
-
-    const mW = menu.offsetWidth  || 170;
-    const mH = menu.offsetHeight || 90;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const r  = btn.getBoundingClientRect();
-
-    // رأسي: لأسفل إن كانت المساحة كافية، وإلا لأعلى
-    if (vh - r.bottom >= mH + 8 || vh - r.bottom >= r.top) {
-        menu.style.top    = 'calc(100% + 6px)';
-        menu.style.bottom = 'auto';
-    } else {
-        menu.style.bottom = 'calc(100% + 6px)';
-        menu.style.top    = 'auto';
+    // position:absolute من الـ wrapper — لا حاجة لحسابات JS
+    const isOpen = menu.style.display === 'block';
+    menu.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) {
+        setTimeout(() => document.addEventListener('click', _closeSortDropdown, { once: true }), 10);
     }
-
-    // أفقي: لو في مساحة على اليمين → محاذاة يسار، وإلا → محاذاة يمين
-    if (r.left + mW <= vw - 4) {
-        menu.style.left  = '0';
-        menu.style.right = 'auto';
-    } else {
-        menu.style.right = '0';
-        menu.style.left  = 'auto';
-    }
-
-    menu.style.visibility = '';
-
-    setTimeout(() => document.addEventListener('click', _closeSortDropdown, { once: true }), 10);
 }
 
 function _closeSortDropdown() {

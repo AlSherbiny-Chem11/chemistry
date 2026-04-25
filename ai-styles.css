@@ -1,5 +1,4 @@
 /* ============================================
-   الذكاء الاصطناعي — El Sherbini AI
    ai-styles.css
    ============================================ */
 
@@ -1678,11 +1677,17 @@
     padding: 14px 16px;
     overflow-x: auto;
     font-size: 12.5px;
-    line-height: 1.65;
+    line-height: 1.7;
     color: #e6edf3;
     background: transparent;
     white-space: pre;
     tab-size: 2;
+    /* ─── إصلاح الأكواد العربية ─── */
+    /* unicode-bidi:plaintext يسمح لكل سطر يحدد اتجاهه بناءً على محتواه */
+    unicode-bidi: plaintext;
+    /* direction: ltr يبقى للكود الإنجليزي، لكن التعليقات العربية ستُعرض صح */
+    direction: ltr;
+    text-align: left;
 }
 
 .ai-code-block code {
@@ -1796,6 +1801,7 @@
         transform: none !important;
         position: relative !important;
         height: 100% !important;
+        width: 280px;
     }
     #ai-sidebar-overlay {
         display: none !important;
@@ -1807,12 +1813,98 @@
         min-width: 0;
         overflow: hidden;
     }
+
+    /* ── تحسينات Desktop — رسائل وخطوط ── */
+    #ai-messages-wrap {
+        padding: 24px 0;
+        align-items: center;    /* المحتوى يتمركز أفقياً */
+    }
+
+    /* غلاف داخلي يحدد أقصى عرض للمحادثة ليكون مريحاً للقراءة */
+    #ai-messages-wrap > * {
+        width: 100%;
+        max-width: 780px;
+        padding: 0 24px;
+        box-sizing: border-box;
+    }
+
+    /* رسائل الـ AI: bubble بحجم مناسب للشاشة الكبيرة */
+    .ai-msg-body {
+        max-width: 72%;
+    }
+
+    /* bubble أكبر وخط أوضح */
+    .ai-msg-bubble {
+        font-size: 13.5px;
+        line-height: 1.75;
+        padding: 12px 16px;
+    }
+
+    /* الكود أوضح على الشاشة الكبيرة */
+    .ai-code-block pre {
+        font-size: 13px;
+        padding: 16px 20px;
+        line-height: 1.7;
+    }
+    .ai-code-header {
+        padding: 7px 16px;
+    }
+    .ai-code-lang {
+        font-size: 11px;
+    }
+
+    /* Header على الـ desktop أكبر قليلاً */
+    #ai-header {
+        height: 60px;
+        padding: 0 20px;
+    }
+    .ai-header-title { font-size: 13px; }
+    .ai-header-sub   { font-size: 10px; }
+
+    /* Input bar أوسع ومريح */
+    #ai-input-bar {
+        padding: 12px 20px 16px;
+    }
+    #ai-input-wrap {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 9px 12px 9px 10px;
+    }
+    #ai-msg-input {
+        font-size: 14px;
+    }
+
+    /* Sidebar buttons أوضح */
+    #ai-new-chat-btn {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+
     /* Analytics + memory panels: فوق chat area */
     #ai-analytics-panel,
     #ai-memory-panel {
         position: absolute;
-        top: 0; left: 0; right: 260px; bottom: 0;
+        top: 0; left: 0; right: 280px; bottom: 0;
         z-index: 5;
+    }
+
+    /* empty state أكبر على الشاشة الكبيرة */
+    .ai-empty-state {
+        padding: 48px 40px;
+    }
+    .ai-empty-icon {
+        width: 76px; height: 76px;
+        font-size: 30px;
+        border-radius: 22px;
+    }
+    .ai-empty-state h3 { font-size: 19px; }
+    .ai-empty-state p  { font-size: 13px; max-width: 320px; }
+    .ai-suggestions {
+        max-width: 380px;
+    }
+    .ai-suggestion {
+        font-size: 12px;
+        padding: 10px 16px;
     }
 }
 
@@ -1860,5 +1952,29 @@
     #ai-chat-area {
         width: 100% !important;
         flex: 1;
+    }
+}
+/* ============================================
+   تحسينات الشاشات الكبيرة جداً (1400px+)
+   ============================================ */
+@media (min-width: 1400px) {
+    #ai-sidebar {
+        width: 300px;
+    }
+    #ai-messages-wrap > * {
+        max-width: 860px;
+    }
+    #ai-input-wrap {
+        max-width: 860px;
+    }
+    .ai-msg-body {
+        max-width: 68%;
+    }
+    .ai-code-block pre {
+        font-size: 13.5px;
+    }
+    #ai-analytics-panel,
+    #ai-memory-panel {
+        right: 300px;
     }
 }
